@@ -7,6 +7,6 @@ https://github.com/isabelleKirby/Machine-Learning/blob/main/Overview.pdf
 
 # Portfolio Component 1: Data Exploration
 
-Code: https://github.com/isabelleKirby/Machine-Learning/blob/main/Assignment%201.cpp
+[Code](https://github.com/isabelleKirby/Machine-Learning/blob/main/Assignment%201.cpp)
 
 Paper: https://github.com/isabelleKirby/Machine-Learning/blob/main/Assignment%201%20Paper.docx
