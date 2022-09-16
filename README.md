@@ -9,4 +9,4 @@ https://github.com/isabelleKirby/Machine-Learning/blob/main/Overview.pdf
 
 [Code](https://github.com/isabelleKirby/Machine-Learning/blob/main/Assignment%201.cpp)
 
-Paper: https://github.com/isabelleKirby/Machine-Learning/blob/main/Assignment%201%20Paper.docx
+[Paper](https://github.com/isabelleKirby/Machine-Learning/blob/main/Assignment%201%20Paper.docx)
