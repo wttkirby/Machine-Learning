@@ -78,7 +78,7 @@ int main()
 
 			numEntry++;
 		}
-		
+
 		inFS.close();
 
 		personIDTrain.resize(800);
@@ -99,8 +99,17 @@ int main()
 		matrixTrainSex[0][1] = sexTrain;
 
 		vector <double> matrixTestSex[1][2];
-		matrixTrainSex[0][0] = numOneTest;
-		matrixTrainSex[0][1] = sexTest;
+		matrixTestSex[0][0] = numOneTest;
+		matrixTestSex[0][1] = sexTest;
+
+		for (int i = 0; i < 800; i++) {
+			cout << matrixTrainSex[0][0].at(i) << ",";
+			cout << matrixTrainSex[0][1].at(i) << endl;
+		}
+		for (int i = 0; i < numEntry2; i++) {
+			cout << matrixTestSex[0][0].at(i) << ",";
+			cout << matrixTestSex[0][1].at(i) << endl;
+		}
 
 	}
 }
