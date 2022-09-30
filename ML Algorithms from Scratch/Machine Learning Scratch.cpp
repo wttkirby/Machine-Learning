@@ -25,6 +25,7 @@ int main()
 	vector<double> survivedTest(MAX_LEN);
 	vector<double> sexTest(MAX_LEN);
 	vector<double> ageTest(MAX_LEN);
+	vector<double> numOne
 	int numEntry = 0;
 
 	cout << "Opening file titanic_project.csv" << endl << endl;
@@ -71,11 +72,16 @@ int main()
 			numEntry++;
 		}
 		
-		personID.resize(numEntry);
-		pclass.resize(numEntry);
-		survived.resize(numEntry);
-		sex.resize(numEntry);
-		age.resize(numEntry);
+		personIDTrain.resize(800);
+		personIDTest.resize((numEntry - 800));
+		pclassTest.resize((numEntry - 800));
+		pclassTrain.resize(800);
+		survivedTest.resize((numEntry - 800));
+		survivedTrain.resize(800);
+		sexTest.resize((numEntry - 800));
+		sexTrain.resize(800);
+		ageTest.resize((numEntry - 800));
+		ageTrain.resize(800);
 		
 		cout << numEntry << endl;
 		inFS.close();
