@@ -102,40 +102,41 @@ int main()
 			}
 			numEntry++;		// Increment the numEntry (used for the train vectors index)
 		}
+
+		cout << "Closing file titanic_project.csv" << endl << endl;
+		inFS.close();
 		
 		// Creating the training set matrix (array) for sex
 		int trainSex[trainSize][2];
+		// Creating the testing set matrix (array) for sex
+		int testSex[testSize][2];
 
-		// Setting the values for the sex training set
-		for (int i = 0; i < trainSize - 1; i++) {
+		// Setting the values for the sex training and testing set
+		for (int i = 0; i < fileSize - 1; i++) {
+			// If i is in the training set
+			if (i < trainSize) {
+			//cout << "i: "  << i << endl;
 			// Set trainSex[0][i]
 			trainSex[i][0] = 1;
 			// Set trainSex[1][i]
 			trainSex[i][1] = sexTrain.at(i);
-
-			//cout << "trainSex[i][0]: " << trainSex[i][1] << endl;
+			//cout << "trainSex[i][0]: " << trainSex[i][0] << endl;
 			//cout << "trainSex[i][1]: " << trainSex[i][1] << endl;
-		} 
-
-		// Creating the testing set matrix (array) for sex
-		int testSex[testSize][2];
-
-		// Setting the values for the sex testing set
-		for (int i = 0; i < testSize - 1; i++) {
+			}	// If i is in the testing set
+			else if (i < testSize + trainSize) {
+			//cout << "i - trainSize: "  << i-trainSize << endl;
 			// Set testSex[0][i]
-			testSex[i][0] = 1;
+			testSex[i-trainSize][0] = 1;
 			// Set testSex[1][i]
-			testSex[i][1] = sexTest.at(i);
+			testSex[i-trainSize][1] = sexTest.at(i-trainSize);
+			//cout << "testSex[i-trainSize][0]: " << testSex[i-trainSize][0] << endl;
+			//cout << "testSex[i-trainSize][1]: " << testSex[i-trainSize][1] << endl;
+			}
 
-			//cout << "testSex[i][0]: " << testSex[i][1] << endl;
-			//cout << "testSex[i][1]: " << testSex[i][1] << endl;
+
+			
+			
 		} 
-
-		
-
-
-		cout << "Closing file titanic_project.csv" << endl << endl;
-		inFS.close();
 
 	}
 }
