@@ -25,7 +25,8 @@ int main()
 	vector<double> survivedTest(MAX_LEN);
 	vector<double> sexTest(MAX_LEN);
 	vector<double> ageTest(MAX_LEN);
-	vector<double> numOne
+	vector<double> numOneTrain(MAX_LEN);
+	vector<double> numOneTest(MAX_LEN);
 	int numEntry = 0;
 
 	cout << "Opening file titanic_project.csv" << endl << endl;
@@ -58,13 +59,16 @@ int main()
 					survivedTrain.at(numEntry) = stod(survived_in);
 					sexTrain.at(numEntry) = stod(sex_in);
 					ageTrain.at(numEntry) = stod(age_in);
+					numOneTrain.at(numEntry) = 1;
 				}
 				else {
-					personIDTest.at(numEntry) = stod(person_in);
-					pclassTest.at(numEntry) = stod(pclass_in);
-					survivedTest.at(numEntry) = stod(survived_in);
-					sexTest.at(numEntry) = stod(sex_in);
-					ageTest.at(numEntry) = stod(age_in);
+					int numEntry2 = 0;
+					personIDTest.at(numEntry2) = stod(person_in);
+					pclassTest.at(numEntry2) = stod(pclass_in);
+					survivedTest.at(numEntry2) = stod(survived_in);
+					sexTest.at(numEntry2) = stod(sex_in);
+					ageTest.at(numEntry2) = stod(age_in);
+					numEntry2++;
 				}
 
 			}
@@ -83,6 +87,9 @@ int main()
 		ageTest.resize((numEntry - 800));
 		ageTrain.resize(800);
 		
+		vector <double> matrixTrainSex[800][2];
+
+
 		cout << numEntry << endl;
 		inFS.close();
 
