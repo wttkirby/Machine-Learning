@@ -9,7 +9,8 @@
 
 using namespace std;
 
-int getNumLines(ifstream);						// Counts and returns the number of lines in a given file stream
+int getNumLines(ifstream);	// Counts and returns the number of lines in a given file stream
+vector<double> dotProd(vector<double> sexMatrix[][2], vector<double> weights, int size);
 double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and 
@@ -121,6 +122,25 @@ int getNumLines(ifstream file)
 
 	// Return the number of lines found
 	return numOfLines;
+}
+
+
+/*
+	This function computes the dot product of a vector matrix with a weight vector and returns the product.
+	It does this by multiplying the value at matrix[0][i] (or the equivalent of it using vectors
+	(matrix[0][0].at(i))) with the weights vector at 0, and then adds it with the product of
+	matrix[1][i] (or the equivalent of it using vectors (matrix[0][1].at(i))) with the weights vector at 1.
+	This returns a vector or a nx1 matrix holding the ending matrix we need for calculations.
+*/
+vector<double> dotProd(vector<double> sexMatrix[][2], vector<double> weights, int size) {
+
+	vector<double> answer(size);
+
+	for (int i = 0; i < size; i++) {
+		answer.at(i) = (sexMatrix[0][0].at(i) * weights.at(0) + (sexMatrix[0][1].at(i) * weights.at(1)));
+	}
+
+	return answer;
 }
 double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
