@@ -11,6 +11,7 @@ using namespace std;
 
 
 int getNumLines(string);						// Counts and returns the number of lines in a given file stream
+vector<double> dotProd(vector<double>[][2], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
 double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
@@ -38,22 +39,27 @@ int main()
 	{
 		// Get the file size (number of lines)
 		const int fileSize = getNumLines("titanic_project.csv");
-		//cout << "File number of lines: " << fileSize << endl;
+		cout << "File number of lines: " << fileSize << endl;
 
 		// Initialize our vectors, strings, and variables for getting our data
 		string person_in, pclass_in, survived_in, sex_in, age_in; // Used to temporarily hold values from getline
-		vector<double> personIDTrain(fileSize-1);
-		vector<double> pclassTrain(fileSize-1);
-		vector<double> survivedTrain(fileSize-1);
-		vector<double> sexTrain(fileSize-1);
-		vector<double> ageTrain(fileSize-1);
-		vector<double> personIDTest(fileSize-1);
-		vector<double> pclassTest(fileSize-1);
-		vector<double> survivedTest(fileSize-1);
+		const int trainSize = (((fileSize - 1) * 80) / 100);
+		const int testSize = ((fileSize - 1) - (((fileSize - 1) * 80) / 100));
+		vector<double> personIDTrain(((fileSize - 1) * 80) / 100);
+		vector<double> pclassTrain(((fileSize - 1) * 80) / 100);
+		vector<double> survivedTrain(((fileSize - 1) * 80) / 100);
+		vector<double> sexTrain(((fileSize - 1) * 80) / 100);
+		vector<double> ageTrain(((fileSize - 1) * 80) / 100);
+		vector<double> personIDTest(fileSize-1 - ((fileSize - 1) * 80) / 100);
+		vector<double> pclassTest(fileSize-1 - ((fileSize - 1) * 80) / 100);
+		vector<double> survivedTest(fileSize-1 -((fileSize - 1) * 80) / 100);
 		vector<double> sexTest(fileSize-1);
 		vector<double> ageTest(fileSize-1);
 		vector<double> numOneTrain(fileSize-1);
 		vector<double> numOneTest(fileSize-1);		// Used for multiplying our vectors later
+		vector<double> weights(2);
+		weights.assign(2,1);
+
 
 		// Used to track the current entry in our while loop below
 		int numEntry = 0;	
@@ -61,7 +67,7 @@ int main()
 
 		// Read in the first line to skip it (just headers)
 		getline(inFS, line);
-		//cout << "heading: " << line << endl;
+		// cout << "heading: " << line << endl;
 
 		// While there is more to read from the file
 		while (inFS.good())
@@ -74,30 +80,59 @@ int main()
 			getline(inFS, age_in, '\n');		// Get the person's age input (int)
 
 			// If numEntry is in range of the file size
-			if (numEntry < fileSize - 1 ) { 
+			if (numEntry < fileSize-1) {
 				// If the data entry is in the first 80% of the data set, add it to train vectors
-				if (numEntry < ((fileSize - 1) * 80) / 100) {
-					personIDTrain.at(numEntry) = stod(person_in);		// Add the person's ID entry to the person ID train vector
-					pclassTrain.at(numEntry) = stod(pclass_in);			// Add the person's class entry to the person class train vector
-					survivedTrain.at(numEntry) = stod(survived_in);		// Add the survived entry to the survived train vector
-					sexTrain.at(numEntry) = stod(sex_in);				// Add the person's sex entry to the sex train vector
-					ageTrain.at(numEntry) = stod(age_in);				// Add the person's age entry to the age train vector
-					numOneTrain.at(numEntry) = 1;						// Add the 1 for the number one vector
+				if (numEntry < trainSize) {
+					personIDTrain.insert(personIDTrain.begin() + numEntry, stod(person_in));		// Add the person's ID entry to the person ID train vector
+					pclassTrain.insert(pclassTrain.begin() + numEntry, stod(pclass_in));			// Add the person's class entry to the person class train vector
+					survivedTrain.insert(survivedTrain.begin() + numEntry, stod(survived_in));		// Add the survived entry to the survived train vector
+					sexTrain.insert(sexTrain.begin() + numEntry, stod(sex_in));				// Add the person's sex entry to the sex train vector
+					ageTrain.insert(ageTrain.begin() + numEntry, stod(age_in));				// Add the person's age entry to the age train vector
+					numOneTrain.insert(numOneTrain.begin() + 1, 1);						// Add the 1 for the number one vector
 				}
 				else {	// Otherwise it is in the last 20% of the data set, add it to the test vectors
-					personIDTest.at(numEntry2) = stod(person_in);		// Add the person's ID entry to the person ID test vector
-					pclassTest.at(numEntry2) = stod(pclass_in);			// Add the person's class entry to the person class test vector
-					survivedTest.at(numEntry2) = stod(survived_in);		// Add the survived entry to the survived test vector
-					sexTest.at(numEntry2) = stod(sex_in);				// Add the person's sex entry to the sex test vector
-					ageTest.at(numEntry2) = stod(age_in);				// Add the person's age entry to the age test vector
+					personIDTest.insert(personIDTest.begin() + numEntry2, stod(person_in));		// Add the person's ID entry to the person ID test vector
+					pclassTest.insert(pclassTest.begin() + numEntry2, stod(pclass_in));		// Add the person's class entry to the person class test vector
+					survivedTest.insert(survivedTest.begin() + numEntry2, stod(survived_in));	// Add the survived entry to the survived test vector
+					sexTest.insert(sexTest.begin() + numEntry2, stod(sex_in));				// Add the person's sex entry to the sex test vector
+					ageTest.insert(ageTest.begin() + numEntry2, stod(age_in));				// Add the person's age entry to the age test vector
 					numEntry2++;										// Increment the numEntry 2 (used for test vectors index)			
 				}
 
 			}
-
 			numEntry++;		// Increment the numEntry (used for the train vectors index)
 		}
 		
+		// Creating the training set matrix (array) for sex
+		int trainSex[trainSize][2];
+
+		// Setting the values for the sex training set
+		for (int i = 0; i < trainSize - 1; i++) {
+			// Set trainSex[0][i]
+			trainSex[i][0] = 1;
+			// Set trainSex[1][i]
+			trainSex[i][1] = sexTrain.at(i);
+
+			//cout << "trainSex[i][0]: " << trainSex[i][1] << endl;
+			//cout << "trainSex[i][1]: " << trainSex[i][1] << endl;
+		} 
+
+		// Creating the testing set matrix (array) for sex
+		int testSex[testSize][2];
+
+		// Setting the values for the sex testing set
+		for (int i = 0; i < testSize - 1; i++) {
+			// Set testSex[0][i]
+			testSex[i][0] = 1;
+			// Set testSex[1][i]
+			testSex[i][1] = sexTest.at(i);
+
+			//cout << "testSex[i][0]: " << testSex[i][1] << endl;
+			//cout << "testSex[i][1]: " << testSex[i][1] << endl;
+		} 
+
+		
+
 
 		cout << "Closing file titanic_project.csv" << endl << endl;
 		inFS.close();
@@ -136,16 +171,19 @@ int getNumLines(string filename)
 	It does this by multiplying the value at matrix[0][i] (or the equivalent of it using vectors
 	(matrix[0][0].at(i))) with the weights vector at 0, and then adds it with the product of
 	matrix[1][i] (or the equivalent of it using vectors (matrix[0][1].at(i))) with the weights vector at 1.
-	This returns a vector or a nx1 matrix holding the ending matrix we need for calculations.
+	.
 */
 vector<double> dotProd(vector<double> sexMatrix[][2], vector<double> weights, int size) {
 
 	vector<double> answer(size);
 
+	// For each index of the answer vector
 	for (int i = 0; i < size; i++) {
+		// Multiplies the value at matrix[0][i] with the weights vector at 0
 		answer.at(i) = (sexMatrix[0][0].at(i) * weights.at(0) + (sexMatrix[0][1].at(i) * weights.at(1)));
 	}
 
+	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
 	return answer;
 }
 
