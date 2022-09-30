@@ -27,8 +27,12 @@ int main()
 	vector<double> ageTest(MAX_LEN);
 	vector<double> numOneTrain(MAX_LEN);
 	vector<double> numOneTest(MAX_LEN);
+	vector<double> weights(2);
 	int numEntry = 0;
 	int numEntry2 = 0;
+
+	weights.at(0) = 1;
+	weights.at(1) = 1;
 
 	cout << "Opening file titanic_project.csv" << endl << endl;
 
