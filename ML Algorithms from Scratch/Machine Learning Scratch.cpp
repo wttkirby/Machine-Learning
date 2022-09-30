@@ -78,6 +78,8 @@ int main()
 
 			numEntry++;
 		}
+		
+		inFS.close();
 
 		personIDTrain.resize(800);
 		personIDTest.resize(numEntry2);
@@ -99,10 +101,6 @@ int main()
 		vector <double> matrixTestSex[1][2];
 		matrixTrainSex[0][0] = numOneTest;
 		matrixTrainSex[0][1] = sexTest;
-
-
-		cout << numEntry << endl;
-		inFS.close();
 
 	}
 }
