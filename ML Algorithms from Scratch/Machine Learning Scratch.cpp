@@ -15,11 +15,16 @@ int main()
 	string line;
 	string person_in, pclass_in, survived_in, sex_in, age_in;
 	const int MAX_LEN = 10000;
-	vector<double> personID(MAX_LEN);
-	vector<double> pclass(MAX_LEN);
-	vector<double> survived(MAX_LEN);
-	vector<double> sex(MAX_LEN);
-	vector<double> age(MAX_LEN);
+	vector<double> personIDTrain(MAX_LEN);
+	vector<double> pclassTrain(MAX_LEN);
+	vector<double> survivedTrain(MAX_LEN);
+	vector<double> sexTrain(MAX_LEN);
+	vector<double> ageTrain(MAX_LEN);
+	vector<double> personIDTest(MAX_LEN);
+	vector<double> pclassTest(MAX_LEN);
+	vector<double> survivedTest(MAX_LEN);
+	vector<double> sexTest(MAX_LEN);
+	vector<double> ageTest(MAX_LEN);
 	int numEntry = 0;
 
 	cout << "Opening file titanic_project.csv" << endl << endl;
@@ -46,11 +51,21 @@ int main()
 			getline(inFS, age_in, '\n');
 
 			if (numEntry < 1046) {
-				personID.at(numEntry) = stod(person_in);
-				pclass.at(numEntry) = stod(pclass_in);
-				survived.at(numEntry) = stod(survived_in);
-				sex.at(numEntry) = stod(sex_in);
-				age.at(numEntry) = stod(age_in);
+				if (numEntry < 800) {
+					personIDTrain.at(numEntry) = stod(person_in);
+					pclassTrain.at(numEntry) = stod(pclass_in);
+					survivedTrain.at(numEntry) = stod(survived_in);
+					sexTrain.at(numEntry) = stod(sex_in);
+					ageTrain.at(numEntry) = stod(age_in);
+				}
+				else {
+					personIDTest.at(numEntry) = stod(person_in);
+					pclassTest.at(numEntry) = stod(pclass_in);
+					survivedTest.at(numEntry) = stod(survived_in);
+					sexTest.at(numEntry) = stod(sex_in);
+					ageTest.at(numEntry) = stod(age_in);
+				}
+
 			}
 
 			numEntry++;
