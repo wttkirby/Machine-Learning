@@ -25,7 +25,7 @@ int main()
 	vector<double> survivedTest(MAX_LEN);
 	vector<double> sexTest(MAX_LEN);
 	vector<double> ageTest(MAX_LEN);
-	vector<double> numOne
+	vector<double> numOne;
 	int numEntry = 0;
 
 	cout << "Opening file titanic_project.csv" << endl << endl;
