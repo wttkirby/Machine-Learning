@@ -6,18 +6,19 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+#include <functional>
 
 using namespace std;
 
 
 int getNumLines(string);						// Counts and returns the number of lines in a given file stream
-vector<double> dotProd(vector<double>[][2], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
+vector<double> dotProd(int[][2], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
+vector<double> dotProdTwo(int[2][836], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
 double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
 
-void logisticRegression();						// Performs logistic regression on the given train and test sets
-void naiveBayes();								// Performs naive bayes on the given train and test sets
 
 
 int main()
@@ -45,18 +46,17 @@ int main()
 		string person_in, pclass_in, survived_in, sex_in, age_in; // Used to temporarily hold values from getline
 		const int trainSize = (((fileSize - 1) * 80) / 100);
 		const int testSize = ((fileSize - 1) - (((fileSize - 1) * 80) / 100));
-		vector<double> personIDTrain(((fileSize - 1) * 80) / 100);
-		vector<double> pclassTrain(((fileSize - 1) * 80) / 100);
-		vector<double> survivedTrain(((fileSize - 1) * 80) / 100);
-		vector<double> sexTrain(((fileSize - 1) * 80) / 100);
-		vector<double> ageTrain(((fileSize - 1) * 80) / 100);
-		vector<double> personIDTest(fileSize-1 - ((fileSize - 1) * 80) / 100);
-		vector<double> pclassTest(fileSize-1 - ((fileSize - 1) * 80) / 100);
-		vector<double> survivedTest(fileSize-1 -((fileSize - 1) * 80) / 100);
-		vector<double> sexTest(fileSize-1);
-		vector<double> ageTest(fileSize-1);
-		vector<double> numOneTrain(fileSize-1);
-		vector<double> numOneTest(fileSize-1);		// Used for multiplying our vectors later
+		vector<double> personIDTrain(trainSize);
+		vector<double> pclassTrain(trainSize);
+		vector<double> survivedTrain(trainSize);
+		vector<double> sexTrain(trainSize);
+		vector<double> ageTrain(trainSize);
+		vector<double> personIDTest(testSize);
+		vector<double> pclassTest(testSize);
+		vector<double> survivedTest(testSize);
+		vector<double> sexTest(testSize);
+		vector<double> ageTest(testSize);
+		vector<double> numOneTrain(trainSize);		// Used for multiplying our vectors later
 		vector<double> weights(2);
 		weights.assign(2,1);
 
@@ -107,9 +107,9 @@ int main()
 		inFS.close();
 		
 		// Creating the training set matrix (array) for sex
-		int trainSex[trainSize][2];
+		int trainSexMatrix[trainSize][2];
 		// Creating the testing set matrix (array) for sex
-		int testSex[testSize][2];
+		int testSexMatrix[testSize][2];
 
 		// Setting the values for the sex training and testing set
 		for (int i = 0; i < fileSize - 1; i++) {
@@ -117,28 +117,116 @@ int main()
 			if (i < trainSize) {
 			//cout << "i: "  << i << endl;
 			// Set trainSex[0][i]
-			trainSex[i][0] = 1;
+			trainSexMatrix[i][0] = 1;
 			// Set trainSex[1][i]
-			trainSex[i][1] = sexTrain.at(i);
+			trainSexMatrix[i][1] = sexTrain.at(i);
 			//cout << "trainSex[i][0]: " << trainSex[i][0] << endl;
 			//cout << "trainSex[i][1]: " << trainSex[i][1] << endl;
 			}	// If i is in the testing set
 			else if (i < testSize + trainSize) {
 			//cout << "i - trainSize: "  << i-trainSize << endl;
 			// Set testSex[0][i]
-			testSex[i-trainSize][0] = 1;
+			testSexMatrix[i-trainSize][0] = 1;
 			// Set testSex[1][i]
-			testSex[i-trainSize][1] = sexTest.at(i-trainSize);
+			testSexMatrix[i-trainSize][1] = sexTest.at(i-trainSize);
 			//cout << "testSex[i-trainSize][0]: " << testSex[i-trainSize][0] << endl;
 			//cout << "testSex[i-trainSize][1]: " << testSex[i-trainSize][1] << endl;
-			}
-
-
-			
-			
+			}			
 		} 
 
+
+	// Logistic Regression
+	const double learningRate = 0.001;		// The learning rate which will scale our tranDotProduct vector
+	vector<double> probability(trainSize);	// The probability vector
+	vector<double> dotProduct(trainSize);	// Used to hold the current dotProduct vector calculated by dotProd
+	vector<double> tranDotProduct(trainSize);	// Used to hold the dotproduct of the transposed train matrix and error vector
+	vector<double> error(trainSize);			// The errors vector
+	int tranTrainSexMatrix[2][trainSize];	// The tranposed matrix of the trainSexMatrix
+
+	// Get the dotProduct of the trainSetMatrix and weight vector
+	dotProduct = dotProd(trainSexMatrix, weights,trainSize);
+
+	// Get the tranposed matrix of the trainSexMatrix
+	for (int i = 0; i < trainSize; i++) {
+		for (int j = 0; j < 2; j++) {
+			tranTrainSexMatrix[j][i] = trainSexMatrix[i][j];
+		}
 	}
+
+	// Iterate 300 times, CAN BE INCREASE BUT WILL TAKE FOREVER TO EXECUTE!
+	for (int i = 0; i < 300; i++) {
+		//cout << "i: " << i << endl;.
+
+
+		// Create probability vector and set it's values
+		for (int i = 0; i < trainSize-1; i++) {
+			probability.insert(probability.begin() + i, (1 / ( 1 + exp(dotProduct.at(i)))));
+			error.insert(error.begin() + i, survivedTrain.at(i) - probability.at(i));
+		}
+
+		// Get the dotProduct of the tranposed matrix and the error matrix
+		//tranDotProduct = dotProdTwo(tranTrainSexMatrix, error, trainSize);
+		// DOESN'T COMPILE PLEASE ADJUST THIS DOT PRODUCT I TRIED FIXING IT
+		// Scale the tranDotProduct vector by our learningRate
+		for(int i = 0; i < trainSize; i++) {
+			tranDotProduct.insert(tranDotProduct.begin() + i, tranDotProduct.at(i) * learningRate);
+		}
+
+		// Adjusting weight + learningRate + tranDotProduct
+		weights.insert(weights.begin(), weights.at(0) + tranDotProduct.at(0));
+		weights.insert(weights.begin() + 1, weights.at(1) + tranDotProduct.at(1));
+
+		
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	}
+
+	cout << endl << "Exiting..." << endl;
 }
 
 // Counts and returns the number of lines in a given file stream
@@ -174,14 +262,28 @@ int getNumLines(string filename)
 	matrix[1][i] (or the equivalent of it using vectors (matrix[0][1].at(i))) with the weights vector at 1.
 	.
 */
-vector<double> dotProd(vector<double> sexMatrix[][2], vector<double> weights, int size) {
+vector<double> dotProd(int matrix[][2], vector<double> weights, int size) {
 
 	vector<double> answer(size);
 
 	// For each index of the answer vector
 	for (int i = 0; i < size; i++) {
 		// Multiplies the value at matrix[0][i] with the weights vector at 0
-		answer.at(i) = (sexMatrix[0][0].at(i) * weights.at(0) + (sexMatrix[0][1].at(i) * weights.at(1)));
+		answer.insert(answer.begin() + i, ( double(matrix[i][0]) * weights.at(0) + double(matrix[i][1]) * weights.at(1) ));
+	}
+
+	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
+	return answer;
+}
+
+vector<double> dotProdTwo(int matrix[2][836], vector<double> weights, int size) {
+
+	vector<double> answer(size);
+
+	// For each index of the answer vector
+	for (int i = 0; i < size; i++) {
+		// Multiplies the value at matrix[0][i] with the weights vector at 0
+		answer.insert(answer.begin() + i, ( double(matrix[0][i]) * weights.at(0) + double(matrix[1][i]) * weights.at(1) ));
 	}
 
 	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
@@ -203,8 +305,6 @@ double calcSpecificity(int TN, int FN) {
 	return ( (TN) / (TN + FN) );
 }				
 
-// Performs logistic regression on the given train and test sets
-void logisticRegression();	
 
 // Performs native bayes on the given train and test sets
 void naiveBayes();
