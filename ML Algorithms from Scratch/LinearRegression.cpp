@@ -20,7 +20,7 @@ double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
 vector<int> doPredicts(vector<double>, int);
-void printEverything(int, double, double, double, auto)
+void printEverything(int[2][2], double, double, double, auto);
 
 
 int main()
@@ -155,7 +155,7 @@ int main()
 		}
 	}
 
-	auto startClock = high_resolution_clock::now();
+	auto startClock = chrono::high_resolution_clock::now();
 	// Iterate 300 times, CAN BE INCREASE BUT WILL TAKE FOREVER TO EXECUTE!
 	for (int i = 0; i < 300; i++) {
 		//cout << "i: " << i << endl;.
@@ -181,7 +181,7 @@ int main()
 
 	}
 
-	auto stopClock = high_resolution_clock::now();
+	auto stopClock = chrono::high_resolution_clock::now();
 
 	vector<double> logOdds(testSize);
 		vector<double> probVect(testSize);
@@ -215,7 +215,7 @@ int main()
 		double accuracyTest = 0;
 		double sensitivityTest = 0;
 		double specificityTest = 0;
-		auto duration = duration_cast<microseconds>(stopClock - startClock);
+		auto duration = chrono::duration_cast<chrono::microseconds>(stopClock - startClock);
 
 		accuracyTest = calcAccuracy(confusionMatrix[0][0], confusionMatrix[0][1], confusionMatrix[1][0], confusionMatrix[1][1]);
 		sensitivityTest = calcSensitivity(confusionMatrix[0][1], confusionMatrix[1][1]);
@@ -228,7 +228,7 @@ int main()
 	cout << endl << "Exiting..." << endl;
 }
 
-void printEverything(int matrix[][2], double acc, double sens, double spec, auto time){
+void printEverything(int matrix[2][2], double acc, double sens, double spec, auto time){
 	cout << "Confusion Matrix:" << endl << endl;
 
 	for(int i = 0; i < 2; i++){
@@ -236,9 +236,9 @@ void printEverything(int matrix[][2], double acc, double sens, double spec, auto
 	}
 	
 	cout << "Accuracy: " << acc << endl;
-	cout << "Sensitivity: " << sense << endl;
+	cout << "Sensitivity: " << sens << endl;
 	cout << "Specificity: " << spec << endl;
-	cout << "Duration: " << time << " microseconds" << endl;
+	cout << "Duration: " << time.count() << " microseconds" << endl;
 }
 
 // Counts and returns the number of lines in a given file stream
@@ -310,17 +310,17 @@ vector<double> dotProdTwo(int matrix[2][800], vector<double> error) {
 
 // Calculates and returns the accuracy from the given TP, TN, FP, and FN
 double calcAccuracy(int TP, int TN, int FP, int FN) {
-	return ( (TP + TN) / (TP + FP + TN + FN) );
+	return ( double(TP + TN) / double(TP + FP + TN + FN) );
 }		
 
 // Calculates and returns the sensitivity from the given TP and FN
 double calcSensitivity(int TP, int FN) {
-	return ( (TP) / (TP + FN) );
+	return ( double(TP) / double(TP + FN) );
 }				
 
 // Calculates and returns the specificity from the given TN and FN
 double calcSpecificity(int TN, int FN) {
-	return ( (TN) / (TN + FN) );
+	return ( double(TN) / double(TN + FN) );
 }				
 
 vector<int> doPredicts(vector<double> probSex , int size){
