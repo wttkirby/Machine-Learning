@@ -14,6 +14,8 @@ using namespace std;
 
 int getNumLines(string);						// Counts and returns the number of lines in a given file stream
 void printSex(double sex[][2]);
+void printPclass(double class[][2]);
+void printAge(double age[][2]);
 double ageMean(vector<double>);
 double ageVar(vector<double>, double);
 
@@ -266,12 +268,12 @@ void printPclass(double class[][2]){
 	cout << endl;
 }
 
-void printAge(double class[][2]){
+void printAge(double age[][2]){
 	cout << "Probabilities for survival based on passenger class:" << endl << endl;
 	cout << "Kids died    Kids lived" << endl << "Teens died    Teens lived" << endl << "Adults died    Adults lived" << endl "Middle Age Adults died    Middle Age Adults lived" << endl"Seniors died    Seniors lived" << endl << endl;
 
 	for(int i = 0; i < 5; i++)
-			cout << class[i][0] << ", " <<  class[i][1] << endl;
+			cout << age[i][0] << ", " <<  age[i][1] << endl;
 
 	cout << endl;
 }
