@@ -206,50 +206,15 @@ int main()
 			}
 		}
 
+		double accuracyTest = 0;
+		double sensitivityTest = 0;
+		double specificityTest = 0;
+
+
+
+
+
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
