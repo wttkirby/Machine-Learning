@@ -313,15 +313,36 @@ double ageLH( double age, double mean, double var){
 	return((1 / sqrtNum) * expNum);
 }
 
-vector<double> calcProb(int pclass, int sex, double age, double rawClass[][2], double rawSex[][2], double mean[], double var[], double probDied){
+vector<double> calcProb(int pclass, int sex, double age,double rawAge[][2], double rawClass[][2], double rawSex[][2], double mean[], double var[], double probDied){
 
-	double survived = (rawClass[(pclass - 1)][1]) * (rawSex[(sex)][1]) * ageLH(age, mean[1], var[1]) * (1 - probDied);
-	double dead = (rawClass[(pclass - 1)][0]) * (rawSex[(sex)][0]) * ageLH(age, mean[0], var[0]) * probDied;
+	double prbAgeSurv, prbAgeDie;
+	if(age <= 12){
+			prbAgeDie = rawAge[0][0];
+			prbAgeSurv = rawAge[0][1];
+	}
+	else if(age <= 19){
+			prbAgeDie = rawAge[1][0];
+			prbAgeSurv = rawAge[1][1];
+	}
+	else if(age <= 39){
+			prbAgeDie = rawAge[2][0];
+			prbAgeSurv = rawAge[2][1];
+	}
+	else if(age <= 59){
+			prbAgeDie = rawAge[3][0];
+			prbAgeSurv = rawAge[3][1];
+	}
+	else{
+		prbAgeDie = rawAge[4][0];
+		prbAgeSurv = rawAge[4][1];
+	}
+	double survived = (rawClass[(pclass - 1)][1]) * (rawSex[(sex)][1]) * prbAgeSurv * (1 - probDied);
+	double dead = (rawClass[(pclass - 1)][0]) * (rawSex[(sex)][0]) * prbAgeDie * probDied;
 	double denominator = survived + dead;
 
 	//cout << "rawclass[][]: " << (rawClass[(pclass - 1)][1]) << endl;
 	//cout << "rawsex[][]: " << (rawSex[(sex)][1]) << endl;
-	cout << "ageLH: " << ageLH(age, mean[1], var[1]) << endl;
+	//cout << "ageLH: " << ageLH(age, mean[1], var[1]) << endl;
 	//cout << "probDied: " << probDied << endl;
 
 
