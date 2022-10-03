@@ -18,6 +18,7 @@ vector<double> dotProdTwo(int[2][800], vector<double>);		// Computes the dot pro
 double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
+vector<double> doPredicts(vector<double>, int);
 
 
 
@@ -178,12 +179,33 @@ int main()
 
 		vector<double> logOdds(testSize);
 		vector<double> probVect(testSize);
+		vector<double> sexTestPred(testSize);
 
 		logOdds = dotProd(testSexMatrix, weights, testSize);
 
 		for( int i = 0; i < testSize; i++){
 			probVect.insert(probVect.begin() + i, (exp(logOdds.at(i)) / ( 1 + exp(logOdds.at(i)))));
 		}
+
+		sexTestPred = doPredicts(probVect, testSize);
+
+		int confusionMatrix[2][2];
+
+		for(int i = 0; i < testSize; i++){
+			if(sexTestPred.at(i) == testSexMatrix.at(i) && sexTestPred.at(i) == 1){
+				confusionMatrix[0][0] += 1;
+			}
+			else if(sexTestPred.at(i) == testSexMatrix.at(i) && sexTestPred.at(i) == 0){
+				confusionMatrix[1][1] += 1;
+			}
+			else if(sexTestPred.at(i) == 0){
+				confusionMatrix[0][1] += 1;
+			}
+			else{
+				confusionMatrix[1][0] += 1;
+			}
+		}
+
 	}
 
 
@@ -318,6 +340,19 @@ double calcSpecificity(int TN, int FN) {
 	return ( (TN) / (TN + FN) );
 }				
 
+vector<double> doPredicts(vector<double> probSex , int size){
+	vector<double> predictions(size);
+
+	for(int i = 0; i < size; i++){
+		if(probSex.at(i) > .5){
+			predictions.insert(predictions.begin + i, 1);
+		}
+		else{
+			predictions.insert(predictions.begin + i, 0);
+		}
+
+	}
+}
 
 // Performs native bayes on the given train and test sets
 void naiveBayes();
