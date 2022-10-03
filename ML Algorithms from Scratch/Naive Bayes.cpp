@@ -165,6 +165,59 @@ int main()
 
 		double averageAge = ageMean(ageTrain);
 		double varianceAge = ageVar(ageTrain, averageAge);
+		double numKids, numTeens, numAdult, numMidAdult, numSenior;
+		double sumKids, sumTeens, sumAdult, sumMidAdult, sumSenior;
+		double probKids, probTeens, probAdult, probMidAdult, probSenior;
+
+		for( int i = 0; i < 800; i++){
+			//double probAge = (1 / (sqrt(2.0 * 3.14 * varianceAge)*exp(-(((ageTrain.at(i) - ageMean)*(ageTrain.at(i) - ageMean))/(2*varianceAge)))));
+
+			if(ageTrain.at(i) <= 12){
+				numKids++;
+				if(survivedTrain.at(i) == 0)
+					sumKids++;
+			}
+			else if(ageTrain.at(i) <= 19){
+				numTeens++;
+				if(survivedTrain.at(i) == 0)
+					sumTeens++;
+			}
+			else if(ageTrain.at(i) <= 39){
+				numAdults++;
+				if(survivedTrain.at(i) == 0)
+					sumAdults++;
+			}
+			else if(ageTrain.at(i) <= 59){
+				numMidAdults++;
+				if(survivedTrain.at(i) == 0)
+					sumMidAdults++;
+			}
+			else{
+				numSeniors++;
+				if(survivedTrain.at(i) == 0)
+					sumSeniors++;
+			}
+		}
+
+		probKids = sumKids / numKids;
+		probTeens = sumTeens / numTeens;
+		probAdult = sumAdult / numAdult;
+		probMidAdult = sumMidAdult / numMidAdult;
+		probSenior = sumSenior / numSenior;
+
+		double rawProbAge[5][2];
+
+		rawProbAge[0][0] = probKids;
+		rawProbAge[0][1] = (1 - probKids);
+		rawProbAge[1][0] = probTeens;
+		rawProbAge[1][1] = (1 - probTeens);
+		rawProbAge[2][0] = probAdult;
+		rawProbAge[2][1] = (1 - probAdult);
+		rawProbAge[3][0] = probMidAdult;
+		rawProbAge[3][1] = (1 - probMidAdult);
+		rawProbAge[4][0] = probSenior;
+		rawProbAge[4][1] = (1 - probSenior);
+
 
 	}
 
@@ -213,6 +266,17 @@ void printPclass(double class[][2]){
 	cout << endl;
 }
 
+void printAge(double class[][2]){
+	cout << "Probabilities for survival based on passenger class:" << endl << endl;
+	cout << "Kids died    Kids lived" << endl << "Teens died    Teens lived" << endl << "Adults died    Adults lived" << endl "Middle Age Adults died    Middle Age Adults lived" << endl"Seniors died    Seniors lived" << endl << endl;
+
+	for(int i = 0; i < 5; i++)
+			cout << class[i][0] << ", " <<  class[i][1] << endl;
+
+	cout << endl;
+}
+
+void printAge()
 // Counts and returns the number of lines in a given file stream
 int getNumLines(string filename)
 {
