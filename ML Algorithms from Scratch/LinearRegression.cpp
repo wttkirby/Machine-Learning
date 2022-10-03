@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <chrono>
 
 using namespace std;
 
@@ -19,7 +20,7 @@ double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
 vector<int> doPredicts(vector<double>, int);
-void printEverything(int, double, double, double)
+void printEverything(int, double, double, double, auto)
 
 
 int main()
@@ -154,6 +155,7 @@ int main()
 		}
 	}
 
+	auto startClock = high_resolution_clock::now();
 	// Iterate 300 times, CAN BE INCREASE BUT WILL TAKE FOREVER TO EXECUTE!
 	for (int i = 0; i < 300; i++) {
 		//cout << "i: " << i << endl;.
@@ -177,7 +179,11 @@ int main()
 		weights.insert(weights.begin(), weights.at(0) + tranDotProduct.at(0));
 		weights.insert(weights.begin() + 1, weights.at(1) + tranDotProduct.at(1));
 
-		vector<double> logOdds(testSize);
+	}
+
+	auto stopClock = high_resolution_clock::now();
+
+	vector<double> logOdds(testSize);
 		vector<double> probVect(testSize);
 		vector<int> sexTestPred(testSize);
 
@@ -209,23 +215,20 @@ int main()
 		double accuracyTest = 0;
 		double sensitivityTest = 0;
 		double specificityTest = 0;
+		auto duration = duration_cast<microseconds>(stopClock - startClock);
 
 		accuracyTest = calcAccuracy(confusionMatrix[0][0], confusionMatrix[0][1], confusionMatrix[1][0], confusionMatrix[1][1]);
 		sensitivityTest = calcSensitivity(confusionMatrix[0][1], confusionMatrix[1][1]);
 		specificityTest = calcSpecificity(confusionMatrix[0][0], confusionMatrix[1][0]);
 
-		printEverything( confusionMatrix, accuracyTest, sensitivityTest, specificityTest);
-
-	}
-
-	
+		printEverything( confusionMatrix, accuracyTest, sensitivityTest, specificityTest, duration);
 
 	}
 
 	cout << endl << "Exiting..." << endl;
 }
 
-void printEverything(int matrix[][2], double acc, double sens, double spec){
+void printEverything(int matrix[][2], double acc, double sens, double spec, auto time){
 	cout << "Confusion Matrix:" << endl << endl;
 
 	for(int i = 0; i < 2; i++){
@@ -235,7 +238,7 @@ void printEverything(int matrix[][2], double acc, double sens, double spec){
 	cout << "Accuracy: " << acc << endl;
 	cout << "Sensitivity: " << sense << endl;
 	cout << "Specificity: " << spec << endl;
-
+	cout << "Duration: " << time << " microseconds" << endl;
 }
 
 // Counts and returns the number of lines in a given file stream
