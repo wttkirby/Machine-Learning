@@ -14,7 +14,7 @@ using namespace std;
 
 int getNumLines(string);						// Counts and returns the number of lines in a given file stream
 vector<double> dotProd(int[][2], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
-vector<double> dotProdTwo(int[2][800], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
+vector<double> dotProdTwo(int[2][800], vector<double>);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
 double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
@@ -165,7 +165,7 @@ int main()
 		}
 
 		// Get the dotProduct of the tranposed matrix and the error matrix
-		tranDotProduct = dotProdTwo(tranTrainSexMatrix, error, trainSize);
+		tranDotProduct = dotProdTwo(tranTrainSexMatrix, error);
 
 		// Scale the tranDotProduct vector by our learningRate
 		for(int i = 0; i < trainSize; i++) {
@@ -276,14 +276,17 @@ vector<double> dotProd(int matrix[][2], vector<double> weights, int size) {
 	return answer;
 }
 
-vector<double> dotProdTwo(int matrix[2][800], vector<double> error, int size) {
+vector<double> dotProdTwo(int matrix[2][800], vector<double> error) {
 
-	vector<double> answer(size);
+	vector<double> answer(2);
 
 	// For each index of the answer vector
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < 2; i++) {
+		for( int j = 0; j < 800; j++){
+			answer.insert(answer.begin() + i, ( double(matrix[i][j]) * error.at(i) + double(matrix[i][j]) * error.at(i+1) ));
+		}
 		// Multiplies the value at matrix[0][i] with the error vector at i
-		answer.insert(answer.begin() + i, ( double(matrix[0][i]) * error.at(i) + double(matrix[1][i]) * error.at(i+1) ));
+		
 	}
 
 	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
