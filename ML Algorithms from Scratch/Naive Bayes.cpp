@@ -253,15 +253,25 @@ int main()
 		varience[0] = (sumVarD/(numDead -1));
 		varience[1] = (sumVarA/ (numAlive -1));
 
+		cout << "Predictions" << endl;
+
 		cout << "Test:" << endl << "Survived:      Died:" << endl;
 
+		int sumCorrect;
 		for(int i = 0; i < 246; i++){
 			vector<double> probs = calcProb(pclassTest.at(i), sexTest.at(i), ageTest.at(i), rawProbPclass, rawProbSex, mean, varience, probDied);
 
 			cout << probs.at(1) << "      " << probs.at(0) << endl;
+
+			if(probs.at(0) > .5 && survivedTest.at(i) == 0){
+				sumCorrect++;
+			}
+			else if(probs.at(1) > .5 && survivedTest.at(i) == 1){
+				sumCorrect++;
+			}
 		}
 
-
+		cout << "Accuracy: " << (sumCorrect / 246) << endl;
 	}
 
 	cout << endl << "Exiting..." << endl;
