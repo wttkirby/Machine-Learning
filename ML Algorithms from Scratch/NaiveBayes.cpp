@@ -281,7 +281,7 @@ int main()
 				sumCorrect++;
 				confusionMatrix[0][0] += 1;
 			}
-			else if(probs.at(1) > .5 && survivedTest.at(i) == 1) {
+			else if(probs.at(1) > .5 && survivedTest.at(i) != 1) {
 				confusionMatrix[0][1] += 1;
 			}
 			else {
