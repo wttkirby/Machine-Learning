@@ -244,7 +244,7 @@ double ageVar(vector<double> age, double average){
 		sum += ((age.at(i) - ave) * (age.at(i) - ave));
 	}
 
-	return((sum/799.0));
+	return((double(sum)/799.0));
 }
 
 void printSex(double sex[][2]){
@@ -267,17 +267,16 @@ void printPclass(double pclass[][2]){
 	cout << endl;
 }
 
-void printAge(double class[][2]){
+void printAge(double pclass[][2]){
 	cout << "Probabilities for survival based on passenger class:" << endl << endl;
-	cout << "Kids died    Kids lived" << endl << "Teens died    Teens lived" << endl << "Adults died    Adults lived" << endl "Middle Age Adults died    Middle Age Adults lived" << endl"Seniors died    Seniors lived" << endl << endl;
+	cout << "Kids died    Kids lived" << endl << "Teens died    Teens lived" << endl << "Adults died    Adults lived" << endl << "Middle Age Adults died    Middle Age Adults lived" << endl << "Seniors died    Seniors lived" << endl << endl;
 
 	for(int i = 0; i < 5; i++)
-			cout << class[i][0] << ", " <<  class[i][1] << endl;
+			cout << pclass[i][0] << ", " <<  pclass[i][1] << endl;
 
 	cout << endl;
 }
 
-void printAge()
 // Counts and returns the number of lines in a given file stream
 int getNumLines(string filename)
 {
