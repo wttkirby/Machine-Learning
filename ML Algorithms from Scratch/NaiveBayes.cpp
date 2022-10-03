@@ -251,8 +251,12 @@ int main()
 
 		cout << "Test:" << endl << "Survived:      Died:" << endl;
 
-		int sumCorrect;
+		int sumCorrect = 0;
 		int confusionMatrix[2][2];
+		confusionMatrix[0][0] = 1;
+		confusionMatrix[1][0] = 1;
+		confusionMatrix[0][1] = 1;
+		confusionMatrix[1][1] = 1;
 
 		cout << "pclassTest: " << pclassTest.at(0) << endl;
 		cout << "sexTest: " << sexTest.at(0) << endl;
@@ -277,7 +281,7 @@ int main()
 				sumCorrect++;
 				confusionMatrix[0][0] += 1;
 			}
-			else if(probs.at(0) > .5 && survivedTest.at(i) == 1) {
+			else if(probs.at(1) > .5 && survivedTest.at(i) == 1) {
 				confusionMatrix[0][1] += 1;
 			}
 			else {
@@ -292,7 +296,7 @@ int main()
 		}
 
 		cout << "Sumcorrect: " << sumCorrect << endl;
-		cout << "Accuracy: " << (sumCorrect / 246) << endl;
+		cout << "Accuracy: " << (double(sumCorrect) / double(246)) << endl;
 
 		cout << "Sensitivity: " << calcSensitivity(confusionMatrix[0][0], confusionMatrix[0][1]) << endl;
 
@@ -305,12 +309,15 @@ int main()
 }
 
 double ageLH( double age, double mean, double var){
-	double sqrtNum = sqrt(2.0 * 3.14 * (var * var));
-	double expNum = exp(-(((age - mean)*(age - mean))/(2*(var * var))));
+	cout << "mean: " << mean << endl;
+	cout << "age: " << age << endl;
+	cout << "var: " << var << endl;
+	double sqrtNum = sqrt(2.0 * 3.14 * var);
+	double expNum = exp(-(((age - mean)*(age - mean))/(2*var)));
 	cout << "sqrt(): " << sqrtNum << endl;
 	cout << "exp: " << expNum << endl;
 	cout << "2*var" << 2*var << endl;
-	return((1 / sqrtNum) * expNum);
+	return(1 / sqrtNum * expNum);
 }
 
 vector<double> calcProb(int pclass, int sex, double age, double rawClass[][2], double rawSex[][2], double mean[], double var[], double probDied){
