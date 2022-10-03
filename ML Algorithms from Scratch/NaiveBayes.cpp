@@ -19,7 +19,7 @@ double ageVar(vector<double>, double);
 void printPclass(double[][2]);
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
-vector<double>  calcProb(int pclass, int sex, double age,double rawAge[][2], double rawClass[][2], double rawSex[][2], double mean[], double var[], double probDied);
+vector<double>  calcProb(int pclass, int sex, double age,double rawAge[][2], double rawClass[][2], double rawSex[][2], double probDied);
 double ageLH( double, double, double);
 
 
@@ -269,7 +269,7 @@ int main()
 
 
 		for(int i = 0; i < 246; i++){
-			vector<double> probs = calcProb(pclassTest.at(i), sexTest.at(i), ageTest.at(i), rawProbPclass, rawProbSex, mean, varience, probDied);
+			vector<double> probs = calcProb(pclassTest.at(i), sexTest.at(i), ageTest.at(i), rawProbAge, rawProbPclass, rawProbSex, probDied);
 
 			//cout << probs.at(1) << "      " << probs.at(0) << endl;
 
@@ -320,7 +320,7 @@ double ageLH( double age, double mean, double var){
 	return(1 / sqrtNum * expNum);
 }
 
-vector<double> calcProb(int pclass, int sex, double age,double rawAge[][2], double rawClass[][2], double rawSex[][2], double mean[], double var[], double probDied){
+vector<double> calcProb(int pclass, int sex, double age,double rawAge[][2], double rawClass[][2], double rawSex[][2], double probDied){
 
 	double prbAgeSurv, prbAgeDie;
 	if(age <= 12){
