@@ -19,7 +19,7 @@ double ageVar(vector<double>, double);
 void printPclass(double[][2]);
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
-vector<double> calcProb(int, int, double, double[][2], double[][2], double[], double[], double);
+vector<double>  calcProb(int pclass, int sex, double age,double rawAge[][2], double rawClass[][2], double rawSex[][2], double mean[], double var[], double probDied);
 double ageLH( double, double, double);
 
 
