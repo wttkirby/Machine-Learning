@@ -283,7 +283,7 @@ vector<double> dotProdTwo(int matrix[2][800], vector<double> error) {
 	// For each index of the answer vector
 	for (int i = 0; i < 2; i++) {
 		for( int j = 0; j < 800; j++){
-			answer.insert(answer.begin() + i, ( double(matrix[i][j]) * error.at(i) + double(matrix[i][j]) * error.at(i+1) ));
+			answer.insert(answer.begin() + i, answer.at(i) + ( double(matrix[i][j]) * error.at(i) + double(matrix[i][j]) * error.at(i+1) ));
 		}
 		// Multiplies the value at matrix[0][i] with the error vector at i
 		
