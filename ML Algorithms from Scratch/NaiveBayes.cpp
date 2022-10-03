@@ -17,6 +17,11 @@ void printSex(double sex[][2]);
 double ageMean(vector<double>);
 double ageVar(vector<double>, double);
 void printPclass(double[][2]);
+double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
+double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
+vector<double> calcProb(int, int, double, double[][2], double[][2], double[], double[], double);
+double ageLH( double, double, double);
+
 
 int main()
 {
@@ -169,10 +174,12 @@ int main()
 		double numKids, numTeens, numAdult, numMidAdult, numSenior;
 		double sumKids, sumTeens, sumAdult, sumMidAdult, sumSenior;
 		double probKids, probTeens, probAdult, probMidAdult, probSenior;
+		double probDied = ((numDiedF + numDiedM)/(totalF + totalM));
+		double sumAgeDead, sumAgeAlive;
+		double numDead, numAlive;
 
 		for( int i = 0; i < 800; i++){
-			//double probAge = (1 / (sqrt(2.0 * 3.14 * varianceAge)*exp(-(((ageTrain.at(i) - ageMean)*(ageTrain.at(i) - ageMean))/(2*varianceAge)))));
-
+			
 			if(ageTrain.at(i) <= 12){
 				numKids++;
 				if(survivedTrain.at(i) == 0)
@@ -219,10 +226,112 @@ int main()
 		rawProbAge[4][0] = probSenior;
 		rawProbAge[4][1] = (1 - probSenior);
 
+		double avgAgeDied = sumAgeDead / numDead;
+		double avgAgeSurv = sumAgeAlive / numAlive;
+
+		double mean[2];
+		mean[0] = avgAgeDied;
+		mean[1] = avgAgeSurv;
+
+		double sumVarD, sumVarA;
+		for(int i = 0; i < 800; i++){
+			if(survivedTrain.at(i) == 0){
+				sumVarD += ((ageTrain.at(i) - avgAgeDied) * (ageTrain.at(i) - avgAgeDied) * (ageTrain.at(i) - avgAgeDied) * (ageTrain.at(i) - avgAgeDied));
+			}
+			else{
+				sumVarA += ((ageTrain.at(i) - avgAgeSurv) * (ageTrain.at(i) - avgAgeSurv) * (ageTrain.at(i) - avgAgeSurv) * (ageTrain.at(i) - avgAgeSurv));
+			}
+		}
+
+		double varience[2];
+		varience[0] = (sumVarD/(numDead -1));
+		varience[1] = (sumVarA/ (numAlive -1));
+
+		cout << "Predictions" << endl;
+
+		cout << "Test:" << endl << "Survived:      Died:" << endl;
+
+		int sumCorrect;
+		int confusionMatrix[2][2];
+
+		cout << "pclassTest: " << pclassTest.at(0) << endl;
+		cout << "sexTest: " << sexTest.at(0) << endl;
+		cout << "ageTest: " << ageTest.at(0) << endl;
+		cout << "rawprobclass: " << rawProbPclass << endl;
+		cout << "rawProbSexz: " << rawProbSex << endl;
+		cout << "mean: " << mean << endl;
+		cout << "variance: " << varience << endl;
+		cout << "probDied: " << probDied << endl;
+
+
+		for(int i = 0; i < 246; i++){
+			vector<double> probs = calcProb(pclassTest.at(i), sexTest.at(i), ageTest.at(i), rawProbPclass, rawProbSex, mean, varience, probDied);
+
+			//cout << probs.at(1) << "      " << probs.at(0) << endl;
+
+			if(probs.at(0) > .5 && survivedTest.at(i) == 0){
+				sumCorrect++;
+				confusionMatrix[1][1] += 1;
+			}
+			else if(probs.at(1) > .5 && survivedTest.at(i) == 1){
+				sumCorrect++;
+				confusionMatrix[0][0] += 1;
+			}
+			else if(probs.at(0) > .5 && survivedTest.at(i) == 1) {
+				confusionMatrix[0][1] += 1;
+			}
+			else {
+				confusionMatrix[1][0] += 1;
+			}
+		}
+
+		cout << "Confusion Matrix:" << endl << endl;
+
+		for (int i = 0; i < 2; i++) {
+			cout << confusionMatrix[i][0] << ", " << confusionMatrix[i][1] << endl << endl;
+		}
+
+		cout << "Sumcorrect: " << sumCorrect << endl;
+		cout << "Accuracy: " << (sumCorrect / 246) << endl;
+
+		cout << "Sensitivity: " << calcSensitivity(confusionMatrix[0][0], confusionMatrix[0][1]) << endl;
+
+		cout << "Specificity: " << calcSpecificity(confusionMatrix[1][1], confusionMatrix[0][1]) << endl;
+
 
 	}
 
 	cout << endl << "Exiting..." << endl;
+}
+
+double ageLH( double age, double mean, double var){
+	cout << "sqrt(): " << sqrt(2.0 * 3.14 * var) << endl;
+	cout << "exp: " << exp(-(((age - mean)*(age - mean))/(2*var))) << endl;
+	cout << "2*var" << 2*var << endl;
+	return((1 / (sqrt(2.0 * 3.14 * var)*exp(-(((age - mean)*(age - mean))/(2*var))))));
+}
+
+vector<double> calcProb(int pclass, int sex, double age, double rawClass[][2], double rawSex[][2], double mean[], double var[], double probDied){
+
+	double survived = (rawClass[(pclass - 1)][1]) * (rawSex[(sex)][1]) * ageLH(age, mean[1], var[1]) * (1 - probDied);
+	double dead = (rawClass[(pclass - 1)][0]) * (rawSex[(sex)][0]) * ageLH(age, mean[0], var[0]) * probDied;
+	double denominator = survived + dead;
+
+	//cout << "rawclass[][]: " << (rawClass[(pclass - 1)][1]) << endl;
+	//cout << "rawsex[][]: " << (rawSex[(sex)][1]) << endl;
+	cout << "ageLH: " << ageLH(age, mean[1], var[1]) << endl;
+	//cout << "probDied: " << probDied << endl;
+
+
+	//cout << "Survived in calcProb: " << survived << endl;
+	//cout << "dead in calcProb: " << dead << endl;
+	//cout << "denominator in calcProb: " << denominator << endl;
+
+	vector<double> answer(2);
+	answer.insert((answer.begin()), (survived / denominator));
+	answer.insert((answer.begin() + 1), (dead / denominator));
+
+	return answer;
 }
 
 double ageMean(vector<double> age){
@@ -302,4 +411,14 @@ int getNumLines(string filename)
 		return numOfLines;
 	}
 }
+		
 
+// Calculates and returns the sensitivity from the given TP and FN
+double calcSensitivity(int TP, int FN) {
+	return ( double(TP) / double(TP + FN) );
+}				
+
+// Calculates and returns the specificity from the given TN and FN
+double calcSpecificity(int TN, int FN) {
+	return ( double(TN) / double(TN + FN) );
+}		

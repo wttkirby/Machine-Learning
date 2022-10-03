@@ -218,8 +218,8 @@ int main()
 		auto duration = chrono::duration_cast<chrono::microseconds>(stopClock - startClock);
 
 		accuracyTest = calcAccuracy(confusionMatrix[0][0], confusionMatrix[0][1], confusionMatrix[1][0], confusionMatrix[1][1]);
-		sensitivityTest = calcSensitivity(confusionMatrix[0][1], confusionMatrix[1][1]);
-		specificityTest = calcSpecificity(confusionMatrix[0][0], confusionMatrix[1][0]);
+		sensitivityTest = calcSensitivity(confusionMatrix[0][0], confusionMatrix[0][1]);
+		specificityTest = calcSpecificity(confusionMatrix[1][1], confusionMatrix[0][1]);
 
 		printEverything( confusionMatrix, accuracyTest, sensitivityTest, specificityTest, duration);
 
