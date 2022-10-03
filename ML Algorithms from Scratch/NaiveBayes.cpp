@@ -253,52 +253,56 @@ int main()
 
 		int sumCorrect = 0;
 		int confusionMatrix[2][2];
-		confusionMatrix[0][0] = 1;
-		confusionMatrix[1][0] = 1;
-		confusionMatrix[0][1] = 1;
-		confusionMatrix[1][1] = 1;
+		confusionMatrix[0][0] = 0;
+		confusionMatrix[1][0] = 0;
+		confusionMatrix[0][1] = 0;
+		confusionMatrix[1][1] = 0;
 
-		cout << "pclassTest: " << pclassTest.at(0) << endl;
-		cout << "sexTest: " << sexTest.at(0) << endl;
-		cout << "ageTest: " << ageTest.at(0) << endl;
-		cout << "rawprobclass: " << rawProbPclass << endl;
-		cout << "rawProbSexz: " << rawProbSex << endl;
-		cout << "mean: " << mean << endl;
-		cout << "variance: " << varience << endl;
-		cout << "probDied: " << probDied << endl;
+		//cout << "pclassTest: " << pclassTest.at(0) << endl;
+		//cout << "sexTest: " << sexTest.at(0) << endl;
+		//cout << "ageTest: " << ageTest.at(0) << endl;
+		//cout << "rawprobclass: " << rawProbPclass << endl;
+		//cout << "rawProbSexz: " << rawProbSex << endl;
+		//cout << "mean: " << mean << endl;
+		//cout << "variance: " << varience << endl;
+		//cout << "probDied: " << probDied << endl;
 
 
 		for(int i = 0; i < 246; i++){
 			vector<double> probs = calcProb(pclassTest.at(i), sexTest.at(i), ageTest.at(i), rawProbAge, rawProbPclass, rawProbSex, probDied);
 
-			//cout << probs.at(1) << "      " << probs.at(0) << endl;
+			cout << probs.at(1) << "      " << probs.at(0) << endl;
 
 			if(probs.at(0) > .5 && survivedTest.at(i) == 0){
-				sumCorrect++;
+				//cout << "TN" << endl;
+				sumCorrect = sumCorrect + 1;
 				confusionMatrix[1][1] += 1;
 			}
 			else if(probs.at(1) > .5 && survivedTest.at(i) == 1){
-				sumCorrect++;
+				//cout << "TP" << endl;
+				sumCorrect = sumCorrect + 1;
 				confusionMatrix[0][0] += 1;
 			}
 			else if(probs.at(1) > .5 && survivedTest.at(i) != 1) {
 				confusionMatrix[0][1] += 1;
+				//cout << "FP" << endl;
 			}
 			else {
 				confusionMatrix[1][0] += 1;
+				//cout << "FN" <A< endl;
 			}
 		}
 
-		cout << "Confusion Matrix:" << endl << endl;
+		cout << endl << "Confusion Matrix:" << endl << endl;
 
 		for (int i = 0; i < 2; i++) {
 			cout << confusionMatrix[i][0] << ", " << confusionMatrix[i][1] << endl << endl;
 		}
 
-		cout << "Sumcorrect: " << sumCorrect << endl;
+		//cout << "Sumcorrect: " << sumCorrect << endl;
 		cout << "Accuracy: " << (double(sumCorrect) / double(246)) << endl;
 
-		cout << "Sensitivity: " << calcSensitivity(confusionMatrix[0][0], confusionMatrix[0][1]) << endl;
+		cout << "Sensitivity: " << calcSensitivity(confusionMatrix[0][0], confusionMatrix[1][0]) << endl;
 
 		cout << "Specificity: " << calcSpecificity(confusionMatrix[1][1], confusionMatrix[0][1]) << endl;
 
@@ -309,14 +313,14 @@ int main()
 }
 
 double ageLH( double age, double mean, double var){
-	cout << "mean: " << mean << endl;
-	cout << "age: " << age << endl;
-	cout << "var: " << var << endl;
+	//cout << "mean: " << mean << endl;
+	//cout << "age: " << age << endl;
+	//cout << "var: " << var << endl;
 	double sqrtNum = sqrt((2.0 * 3.14 * (var * var)));
 	double expNum = exp(-(((age - mean)*(age - mean))/(2*(var * var))));
-	cout << "sqrt(): " << sqrtNum << endl;
-	cout << "exp: " << expNum << endl;
-	cout << "2*var" << 2*var << endl;
+	//cout << "sqrt(): " << sqrtNum << endl;
+	//cout << "exp: " << expNum << endl;
+	//cout << "2*var" << 2*var << endl;
 	return(1 / sqrtNum * expNum);
 }
 
@@ -448,7 +452,7 @@ double calcSensitivity(int TP, int FN) {
 	return ( double(TP) / double(TP + FN) );
 }				
 
-// Calculates and returns the specificity from the given TN and FN
-double calcSpecificity(int TN, int FN) {
-	return ( double(TN) / double(TN + FN) );
+// Calculates and returns the specificity from the given TN and FP
+double calcSpecificity(int TN, int FP) {
+	return ( double(TN) / double(TN + FP) );
 }		
