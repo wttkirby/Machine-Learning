@@ -268,7 +268,7 @@ int main()
 		//cout << "probDied: " << probDied << endl;
 
 
-		for(int i = 0; i < 246; i++){
+		for(int i = 0; i < 247; i++){
 			vector<double> probs = calcProb(pclassTest.at(i), sexTest.at(i), ageTest.at(i), rawProbAge, rawProbPclass, rawProbSex, probDied);
 
 			cout << probs.at(1) << "      " << probs.at(0) << endl;
@@ -283,7 +283,7 @@ int main()
 				sumCorrect = sumCorrect + 1;
 				confusionMatrix[0][0] += 1;
 			}
-			else if(probs.at(1) > .5 && survivedTest.at(i) != 1) {
+			else if(probs.at(1) > .5) {
 				confusionMatrix[0][1] += 1;
 				//cout << "FP" << endl;
 			}
@@ -300,7 +300,7 @@ int main()
 		}
 
 		//cout << "Sumcorrect: " << sumCorrect << endl;
-		cout << "Accuracy: " << (double(sumCorrect) / double(246)) << endl;
+		cout << "Accuracy: " << (double(sumCorrect) / double(247)) << endl;
 
 		cout << "Sensitivity: " << calcSensitivity(confusionMatrix[0][0], confusionMatrix[1][0]) << endl;
 

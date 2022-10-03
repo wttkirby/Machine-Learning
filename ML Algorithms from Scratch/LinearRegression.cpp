@@ -196,19 +196,27 @@ int main()
 		sexTestPred = doPredicts(probVect, testSize);
 
 		int confusionMatrix[2][2];
+		confusionMatrix[0][0] = 0;
+		confusionMatrix[1][0] = 0;
+		confusionMatrix[0][1] = 0;
+		confusionMatrix[1][1] = 0;
 
 		for(int i = 0; i < testSize; i++){
-			if(sexTestPred.at(i) == testSexMatrix[1][i] && sexTestPred.at(i) == 1){
+
+			//cout << "sextestpredat: " << sexTestPred.at(i) << endl;
+			//cout << "testSexMatrix: " << testSexMatrix[i][1] << endl;
+
+			if(sexTestPred.at(i) == testSexMatrix[i][1] && sexTestPred.at(i) == 1){
 				confusionMatrix[0][0] += 1;
 			}
-			else if(sexTestPred.at(i) == testSexMatrix[1][i] && sexTestPred.at(i) == 0){
+			else if(sexTestPred.at(i) == testSexMatrix[i][1] && sexTestPred.at(i) == 0){
 				confusionMatrix[1][1] += 1;
 			}
 			else if(sexTestPred.at(i) == 0){
-				confusionMatrix[0][1] += 1;
+				confusionMatrix[1][0] += 1;
 			}
 			else{
-				confusionMatrix[1][0] += 1;
+				confusionMatrix[0][1] += 1;
 			}
 		}
 
@@ -218,7 +226,7 @@ int main()
 		auto duration = chrono::duration_cast<chrono::microseconds>(stopClock - startClock);
 
 		accuracyTest = calcAccuracy(confusionMatrix[0][0], confusionMatrix[0][1], confusionMatrix[1][0], confusionMatrix[1][1]);
-		sensitivityTest = calcSensitivity(confusionMatrix[0][0], confusionMatrix[0][1]);
+		sensitivityTest = calcSensitivity(confusionMatrix[0][0], confusionMatrix[1][0]);
 		specificityTest = calcSpecificity(confusionMatrix[1][1], confusionMatrix[0][1]);
 
 		printEverything( confusionMatrix, accuracyTest, sensitivityTest, specificityTest, duration);
