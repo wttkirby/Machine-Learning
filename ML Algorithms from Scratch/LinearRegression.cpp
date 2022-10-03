@@ -338,6 +338,3 @@ vector<int> doPredicts(vector<double> probSex , int size){
 
 	return predictions;
 }
-
-// Performs native bayes on the given train and test sets
-void naiveBayes();
