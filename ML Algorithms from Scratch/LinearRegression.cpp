@@ -277,17 +277,22 @@ vector<double> dotProd(int matrix[][2], vector<double> weights, int size) {
 }
 
 vector<double> dotProdTwo(int matrix[2][800], vector<double> error) {
-
+	
 	vector<double> answer(2);
-
+	double sum1 = 0;
+	double sum2 = 0;
+	
 	// For each index of the answer vector
 	for (int i = 0; i < 2; i++) {
 		for( int j = 0; j < 800; j++){
 			answer.insert(answer.begin() + i, answer.at(i) + ( double(matrix[i][j]) * error.at(i) + double(matrix[i][j]) * error.at(i+1) ));
 		}
+
+		
 		// Multiplies the value at matrix[0][i] with the error vector at i
 		
 	}
+	
 
 	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
 	return answer;
