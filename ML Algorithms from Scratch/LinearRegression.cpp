@@ -14,7 +14,7 @@ using namespace std;
 
 int getNumLines(string);						// Counts and returns the number of lines in a given file stream
 vector<double> dotProd(int[][2], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
-vector<double> dotProdTwo(int[2][836], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
+vector<double> dotProdTwo(int[2][800], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
 double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
@@ -44,8 +44,8 @@ int main()
 
 		// Initialize our vectors, strings, and variables for getting our data
 		string person_in, pclass_in, survived_in, sex_in, age_in; // Used to temporarily hold values from getline
-		const int trainSize = (((fileSize - 1) * 80) / 100);
-		const int testSize = ((fileSize - 1) - (((fileSize - 1) * 80) / 100));
+		const int trainSize = 800;
+		const int testSize = (fileSize - 800);
 		vector<double> personIDTrain(trainSize);
 		vector<double> pclassTrain(trainSize);
 		vector<double> survivedTrain(trainSize);
@@ -144,7 +144,7 @@ int main()
 	int tranTrainSexMatrix[2][trainSize];	// The tranposed matrix of the trainSexMatrix
 
 	// Get the dotProduct of the trainSetMatrix and weight vector
-	dotProduct = dotProd(trainSexMatrix, weights,trainSize);
+	dotProduct = dotProd(trainSexMatrix, weights, trainSize);
 
 	// Get the tranposed matrix of the trainSexMatrix
 	for (int i = 0; i < trainSize; i++) {
@@ -165,8 +165,8 @@ int main()
 		}
 
 		// Get the dotProduct of the tranposed matrix and the error matrix
-		//tranDotProduct = dotProdTwo(tranTrainSexMatrix, error, trainSize);
-		// DOESN'T COMPILE PLEASE ADJUST THIS DOT PRODUCT I TRIED FIXING IT
+		tranDotProduct = dotProdTwo(tranTrainSexMatrix, error, trainSize);
+
 		// Scale the tranDotProduct vector by our learningRate
 		for(int i = 0; i < trainSize; i++) {
 			tranDotProduct.insert(tranDotProduct.begin() + i, tranDotProduct.at(i) * learningRate);
@@ -276,14 +276,14 @@ vector<double> dotProd(int matrix[][2], vector<double> weights, int size) {
 	return answer;
 }
 
-vector<double> dotProdTwo(int matrix[2][836], vector<double> weights, int size) {
+vector<double> dotProdTwo(int matrix[2][800], vector<double> error, int size) {
 
 	vector<double> answer(size);
 
 	// For each index of the answer vector
 	for (int i = 0; i < size; i++) {
-		// Multiplies the value at matrix[0][i] with the weights vector at 0
-		answer.insert(answer.begin() + i, ( double(matrix[0][i]) * weights.at(0) + double(matrix[1][i]) * weights.at(1) ));
+		// Multiplies the value at matrix[0][i] with the error vector at i
+		answer.insert(answer.begin() + i, ( double(matrix[0][i]) * error.at(i) + double(matrix[1][i]) * error.at(i+1) ));
 	}
 
 	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
