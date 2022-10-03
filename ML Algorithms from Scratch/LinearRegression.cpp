@@ -182,7 +182,7 @@ int main()
 		logOdds = dotProd(testSexMatrix, weights, testSize);
 
 		for( int i = 0; i < testSize; i++){
-			probVect.insert(probVect.begin() + i, (exp(dotProd.at(0) + dotProd.at(1)) / ( 1 + exp(dotProd.at(0) + dotProd.at(1)))));
+			probVect.insert(probVect.begin() + i, (exp(logOdds.at(i)) / ( 1 + exp(logOdds.at(i)))));
 		}
 	}
 
