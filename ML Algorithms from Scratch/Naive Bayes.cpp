@@ -170,9 +170,21 @@ int main()
 		double numKids, numTeens, numAdult, numMidAdult, numSenior;
 		double sumKids, sumTeens, sumAdult, sumMidAdult, sumSenior;
 		double probKids, probTeens, probAdult, probMidAdult, probSenior;
+		double probDied = ((numDiedF + numDiedM)/(totalF + totalM));
+		double sumAgeDead, sumAgeAlive;
+		double numDead, numAlive;
 
 		for( int i = 0; i < 800; i++){
-			//double probAge = (1 / (sqrt(2.0 * 3.14 * varianceAge)*exp(-(((ageTrain.at(i) - ageMean)*(ageTrain.at(i) - ageMean))/(2*varianceAge)))));
+
+			if(survivedTrain.at(i) == 0){
+				sumAgeDead += ageTrain.at(i);
+				numDead++;
+			}
+			else{
+				sumAgeAlive += ageTrain.at(i);
+				numAlive++;
+			}
+
 
 			if(ageTrain.at(i) <= 12){
 				numKids++;
@@ -220,10 +232,56 @@ int main()
 		rawProbAge[4][0] = probSenior;
 		rawProbAge[4][1] = (1 - probSenior);
 
+		avgAgeDied = sumAgeDead / numDead;
+		avgAgeSurv = sumAgeAlive / numAlive;
+
+		double mean[2];
+		mean[0] = avgAgeDied;
+		mean[1] = avgAgeSurv;
+
+		double sumVarD, sumVarA;
+		for(int i = 0; i < 800; i++){
+			if(survivedTrain.at(i) == 0){
+				sumVarD += ((age.at(i) - avgAgeDied) * (age.at(i) - avgAgeDied) * (age.at(i) - avgAgeDied) * (age.at(i) - avgAgeDied));
+			}
+			else{
+				sumVarA += ((age.at(i) - avgAgeSurv) * (age.at(i) - avgAgeSurv) * (age.at(i) - avgAgeSurv) * (age.at(i) - avgAgeSurv));
+			}
+		}
+
+		double varience[2];
+		varience[0] = (sumVarD/(numDead -1));
+		varience[1] = (sumVarA/ (numAlive -1));
+
+		cout << "Test:" << endl << "Survived:      Died:" << endl;
+
+		for(int i = 0; i < 246; i++){
+			vector<double> probs = calcProb(pclassTest.at(i), sexTest.at(i), ageTest.at(i), rawProbPclass, rawProbSex, mean, varience, probDied);
+
+			cout << probs.at(1) << "      " << probs.at(0) << endl;
+		}
+
 
 	}
 
 	cout << endl << "Exiting..." << endl;
+}
+
+double ageLH( double age, double mean, double var){
+	return((1 / (sqrt(2.0 * 3.14 * varianceAge)*exp(-(((ageTrain.at(i) - ageMean)*(ageTrain.at(i) - ageMean))/(2*varianceAge))))))
+}
+
+vector<double> calcProb(int pclass, int sex, double age, double rawClass[][2], double rawSex[][2], double mean[], double var[], double age, double probDied){
+
+	double survived = (rawClass[(pclass - 1)][1]) * (rawSex[(sex - 1)][1]) * ageLH(age, mean[1], var[1]) * (1 - probDied);
+	double dead = (rawClass[(pclass - 1)][0]) * (rawSex[(sex - 1)][0]) * ageLH(age, mean[0], var[0]) * probDied;
+	double denominator = survived + dead;
+
+	vector<double> answer(2);
+	answer.insert((answer.begin()), (survived / denominator));
+	answer.insert((answer.begin() + 1), (dead / denominator));
+
+	return answer;
 }
 
 double ageMean(vector<double> age){
@@ -242,7 +300,7 @@ double ageVar(vector<double> age, double average){
 	int sum = 0;
 
 	for(int i = 0; i < 800; i++){
-		sum += ((age.at(i) - ave) * (age.at(i) - ave))
+		sum += ((age.at(i) - ave) * (age.at(i) - ave));
 	}
 
 	return((sum/799.0));
