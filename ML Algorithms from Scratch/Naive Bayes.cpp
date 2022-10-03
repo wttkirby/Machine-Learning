@@ -14,9 +14,10 @@ using namespace std;
 
 int getNumLines(string);						// Counts and returns the number of lines in a given file stream
 void printSex(double sex[][2]);
+void printPclass(double class[][2]);
+void printAge(double age[][2]);
 double ageMean(vector<double>);
 double ageVar(vector<double>, double);
-void printPclass(double[][2]);
 
 int main()
 {
@@ -241,7 +242,7 @@ double ageVar(vector<double> age, double average){
 	int sum = 0;
 
 	for(int i = 0; i < 800; i++){
-		sum += ((age.at(i) - ave) * (age.at(i) - ave));
+		sum += ((age.at(i) - ave) * (age.at(i) - ave))
 	}
 
 	return((sum/799.0));
@@ -257,22 +258,22 @@ void printSex(double sex[][2]){
 	cout << endl;
 }
 
-void printPclass(double pclass[][2]){
+void printPclass(double class[][2]){
 	cout << "Probabilities for survival based on passenger class:" << endl << endl;
 	cout << "class1 died    class1 lived" << endl << "class2 died    class2 lived" << endl << "class3 died    class3 lived" << endl << endl;
 
 	for(int i = 0; i < 3; i++)
-			cout << pclass[i][0] << ", " <<  pclass[i][1] << endl;
+			cout << class[i][0] << ", " <<  class[i][1] << endl;
 
 	cout << endl;
 }
 
-void printAge(double class[][2]){
+void printAge(double age[][2]){
 	cout << "Probabilities for survival based on passenger class:" << endl << endl;
 	cout << "Kids died    Kids lived" << endl << "Teens died    Teens lived" << endl << "Adults died    Adults lived" << endl "Middle Age Adults died    Middle Age Adults lived" << endl"Seniors died    Seniors lived" << endl << endl;
 
 	for(int i = 0; i < 5; i++)
-			cout << class[i][0] << ", " <<  class[i][1] << endl;
+			cout << age[i][0] << ", " <<  age[i][1] << endl;
 
 	cout << endl;
 }
