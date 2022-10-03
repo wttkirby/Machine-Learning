@@ -305,7 +305,7 @@ int main()
 }
 
 double ageLH( double age, double mean, double var){
-	double sqrtNum = sqrt(2.0 * 3.14 * (var * var));
+	double sqrtNum = sqrt((2.0 * 3.14 * (var * var)));
 	double expNum = exp(-(((age - mean)*(age - mean))/(2*(var * var))));
 	cout << "sqrt(): " << sqrtNum << endl;
 	cout << "exp: " << expNum << endl;
