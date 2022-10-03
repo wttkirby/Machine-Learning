@@ -232,6 +232,8 @@ int main()
 		rawProbAge[4][0] = probSenior;
 		rawProbAge[4][1] = (1 - probSenior);
 
+		printAge(rawProbAge);
+		
 		avgAgeDied = sumAgeDead / numDead;
 		avgAgeSurv = sumAgeAlive / numAlive;
 
