@@ -244,7 +244,7 @@ double ageVar(vector<double> age, double average){
 		sum += ((age.at(i) - ave) * (age.at(i) - ave));
 	}
 
-	return((sum/799.0));
+	return((double(sum)/799.0));
 }
 
 void printSex(double sex[][2]){
