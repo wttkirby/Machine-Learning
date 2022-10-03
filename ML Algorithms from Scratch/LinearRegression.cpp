@@ -176,7 +176,9 @@ int main()
 		weights.insert(weights.begin(), weights.at(0) + tranDotProduct.at(0));
 		weights.insert(weights.begin() + 1, weights.at(1) + tranDotProduct.at(1));
 
-		
+		vector<double> dotProductTest(testSize);
+
+		dotProductTest = dotProd(testSexMatrix, weights, testSize);
 	}
 
 
