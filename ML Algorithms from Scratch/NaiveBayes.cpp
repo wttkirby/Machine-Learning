@@ -312,18 +312,6 @@ int main()
 	cout << endl << "Exiting..." << endl;
 }
 
-double ageLH( double age, double mean, double var){
-	//cout << "mean: " << mean << endl;
-	//cout << "age: " << age << endl;
-	//cout << "var: " << var << endl;
-	double sqrtNum = sqrt((2.0 * 3.14 * (var * var)));
-	double expNum = exp(-(((age - mean)*(age - mean))/(2*(var * var))));
-	//cout << "sqrt(): " << sqrtNum << endl;
-	//cout << "exp: " << expNum << endl;
-	//cout << "2*var" << 2*var << endl;
-	return(1 / sqrtNum * expNum);
-}
-
 vector<double> calcProb(int pclass, int sex, double age,double rawAge[][2], double rawClass[][2], double rawSex[][2], double probDied){
 
 	double prbAgeSurv, prbAgeDie;
@@ -353,7 +341,6 @@ vector<double> calcProb(int pclass, int sex, double age,double rawAge[][2], doub
 
 	//cout << "rawclass[][]: " << (rawClass[(pclass - 1)][1]) << endl;
 	//cout << "rawsex[][]: " << (rawSex[(sex)][1]) << endl;
-	//cout << "ageLH: " << ageLH(age, mean[1], var[1]) << endl;
 	//cout << "probDied: " << probDied << endl;
 
 
