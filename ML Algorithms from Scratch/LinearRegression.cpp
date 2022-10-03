@@ -228,19 +228,6 @@ int main()
 	cout << endl << "Exiting..." << endl;
 }
 
-void printEverything(int matrix[2][2], double acc, double sens, double spec, auto time){
-	cout << "Confusion Matrix:" << endl << endl;
-
-	for(int i = 0; i < 2; i++){
-			cout << matrix[i][0] << ", " << matrix[i][1] << endl << endl;
-	}
-	
-	cout << "Accuracy: " << acc << endl;
-	cout << "Sensitivity: " << sens << endl;
-	cout << "Specificity: " << spec << endl;
-	cout << "Duration: " << time.count() << " microseconds" << endl;
-}
-
 // Counts and returns the number of lines in a given file stream
 int getNumLines(string filename)
 {
@@ -297,12 +284,8 @@ vector<double> dotProdTwo(int matrix[2][800], vector<double> error) {
 		for( int j = 0; j < 800; j++){
 			answer.insert(answer.begin() + i, answer.at(i) + ( double(matrix[i][j]) * error.at(i) + double(matrix[i][j]) * error.at(i+1) ));
 		}
-
-		
-		// Multiplies the value at matrix[0][i] with the error vector at i
 		
 	}
-	
 
 	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
 	return answer;
@@ -323,6 +306,7 @@ double calcSpecificity(int TN, int FN) {
 	return ( double(TN) / double(TN + FN) );
 }				
 
+// Calculates the predictions based on probabilities vector
 vector<int> doPredicts(vector<double> probSex , int size){
 	vector<int> predictions(size);
 
@@ -337,4 +321,18 @@ vector<int> doPredicts(vector<double> probSex , int size){
 	}
 
 	return predictions;
+}
+
+// Prints the given metrics to the user
+void printEverything(int matrix[2][2], double acc, double sens, double spec, auto time){
+	cout << "Confusion Matrix:" << endl << endl;
+
+	for(int i = 0; i < 2; i++){
+			cout << matrix[i][0] << ", " << matrix[i][1] << endl << endl;
+	}
+	
+	cout << "Accuracy: " << acc << endl;
+	cout << "Sensitivity: " << sens << endl;
+	cout << "Specificity: " << spec << endl;
+	cout << "Duration: " << time.count() << " microseconds" << endl;
 }
