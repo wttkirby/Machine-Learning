@@ -252,6 +252,7 @@ int main()
 		cout << "Test:" << endl << "Survived:      Died:" << endl;
 
 		int sumCorrect = 0;
+		int sumCorrect2 = 0;
 		int confusionMatrix[2][2];
 		confusionMatrix[0][0] = 1;
 		confusionMatrix[1][0] = 1;
@@ -278,10 +279,10 @@ int main()
 				confusionMatrix[1][1] += 1;
 			}
 			else if(probs.at(1) > .5 && survivedTest.at(i) == 1){
-				sumCorrect++;
+				sumCorrect2++;
 				confusionMatrix[0][0] += 1;
 			}
-			else if(probs.at(1) > .5 && survivedTest.at(i) != 1) {
+			else if(probs.at(1) > .5 && survivedTest.at(i) == 0) {
 				confusionMatrix[0][1] += 1;
 			}
 			else {
@@ -294,6 +295,8 @@ int main()
 		for (int i = 0; i < 2; i++) {
 			cout << confusionMatrix[i][0] << ", " << confusionMatrix[i][1] << endl << endl;
 		}
+
+		sumCorrect += sumCorrect2;
 
 		cout << "Sumcorrect: " << sumCorrect << endl;
 		cout << "Accuracy: " << (double(sumCorrect) / double(246)) << endl;
