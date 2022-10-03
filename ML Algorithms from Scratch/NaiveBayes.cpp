@@ -184,19 +184,19 @@ int main()
 					sumTeens++;
 			}
 			else if(ageTrain.at(i) <= 39){
-				numAdults++;
+				numAdult++;
 				if(survivedTrain.at(i) == 0)
-					sumAdults++;
+					sumAdult++;
 			}
 			else if(ageTrain.at(i) <= 59){
-				numMidAdults++;
+				numMidAdult++;
 				if(survivedTrain.at(i) == 0)
-					sumMidAdults++;
+					sumMidAdult++;
 			}
 			else{
-				numSeniors++;
+				numSenior++;
 				if(survivedTrain.at(i) == 0)
-					sumSeniors++;
+					sumSenior++;
 			}
 		}
 
