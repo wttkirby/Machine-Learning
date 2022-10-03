@@ -176,9 +176,14 @@ int main()
 		weights.insert(weights.begin(), weights.at(0) + tranDotProduct.at(0));
 		weights.insert(weights.begin() + 1, weights.at(1) + tranDotProduct.at(1));
 
-		vector<double> dotProductTest(testSize);
+		vector<double> logOdds(testSize);
+		vector<double> probVect(testSize);
 
-		dotProductTest = dotProd(testSexMatrix, weights, testSize);
+		logOdds = dotProd(testSexMatrix, weights, testSize);
+
+		for( int i = 0; i < testSize; i++){
+			probVect.insert(probVect.begin() + i, (exp(dotProd.at(0) + dotProd.at(1)) / ( 1 + exp(dotProd.at(0) + dotProd.at(1)))));
+		}
 	}
 
 
