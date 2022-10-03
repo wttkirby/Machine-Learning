@@ -19,7 +19,7 @@ double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy
 double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
 double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
 vector<int> doPredicts(vector<double>, int);
-
+void printEverything(int, double, double, double)
 
 
 int main()
@@ -210,17 +210,32 @@ int main()
 		double sensitivityTest = 0;
 		double specificityTest = 0;
 
+		accuracyTest = calcAccuracy(confusionMatrix[0][0], confusionMatrix[0][1], confusionMatrix[1][0], confusionMatrix[1][1]);
+		sensitivityTest = calcSensitivity(confusionMatrix[0][1], confusionMatrix[1][1]);
+		specificityTest = calcSpecificity(confusionMatrix[0][0], confusionMatrix[1][0]);
 
-
-
+		printEverything( confusionMatrix, accuracyTest, sensitivityTest, specificityTest);
 
 	}
 
-
+	
 
 	}
 
 	cout << endl << "Exiting..." << endl;
+}
+
+void printEverything(int matrix[][2], double acc, double sens, double spec){
+	cout << "Confusion Matrix:" << endl << endl;
+
+	for(int i = 0; i < 2; i++){
+			cout << matrix[i][0] << ", " << matrix[i][1] << endl << endl;
+	}
+	
+	cout << "Accuracy: " << acc << endl;
+	cout << "Sensitivity: " << sense << endl;
+	cout << "Specificity: " << spec << endl;
+
 }
 
 // Counts and returns the number of lines in a given file stream
