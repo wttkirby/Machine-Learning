@@ -128,11 +128,11 @@ int main()
 			else if (i < testSize + trainSize) {
 			//cout << "i - trainSize: "  << i-trainSize << endl;
 			// Set testSex[0][i]
-			testSexMatrix[i-trainSize][0] = 1;
+			testSexMatrix[i-trainSize][0]  = 1;
 			// Set testSex[1][i]
 			testSexMatrix[i-trainSize][1] = sexTest.at(i-trainSize);
-			//cout << "testSex[i-trainSize][0]: " << testSex[i-trainSize][0] << endl;
-			//cout << "testSex[i-trainSize][1]: " << testSex[i-trainSize][1] << endl;
+			//cout << "testSex[i-trainSize][0]: " << testSexMatrix[i-trainSize][0] << endl;
+			//cout << "testSex[i-trainSize][1]: " << testSexMatrix[i-trainSize][1] << endl;
 			}			
 		} 
 
@@ -157,7 +157,7 @@ int main()
 
 	auto startClock = chrono::high_resolution_clock::now();
 	// Iterate 300 times, CAN BE INCREASE BUT WILL TAKE FOREVER TO EXECUTE!
-	for (int i = 0; i < 300; i++) {
+	for (int i = 0; i < 30; i++) {
 		//cout << "i: " << i << endl;.
 
 
@@ -189,7 +189,12 @@ int main()
 
 		logOdds = dotProd(testSexMatrix, weights, testSize);
 
+
+
 		for( int i = 0; i < testSize; i++){
+			//cout << "i: " << i << endl;
+			//cout << "exp(logOdds.at(i)): " << exp(logOdds.at(i)) << endl;
+			//cout << "( 1 + exp(logOdds.at(i))): " << ( 1 + exp(logOdds.at(i))) << endl;
 			probVect.insert(probVect.begin() + i, (exp(logOdds.at(i)) / ( 1 + exp(logOdds.at(i)))));
 		}
 
@@ -203,14 +208,15 @@ int main()
 
 		for(int i = 0; i < testSize; i++){
 
-			//cout << "sextestpredat: " << sexTestPred.at(i) << endl;
-			//cout << "testSexMatrix: " << testSexMatrix[i][1] << endl;
+			//cout << endl << "sextestpred: " << sexTestPred.at(i) << endl;
+			//cout << "survived: " << survivedTest.at(i) << endl;
 
-			if(sexTestPred.at(i) == testSexMatrix[i][1] && sexTestPred.at(i) == 1){
+			if(sexTestPred.at(i) == survivedTest.at(i) && sexTestPred.at(i) == 1){;
 				confusionMatrix[0][0] += 1;
 			}
-			else if(sexTestPred.at(i) == testSexMatrix[i][1] && sexTestPred.at(i) == 0){
+			else if(sexTestPred.at(i) == survivedTest.at(i) && sexTestPred.at(i) == 0){
 				confusionMatrix[1][1] += 1;
+
 			}
 			else if(sexTestPred.at(i) == 0){
 				confusionMatrix[1][0] += 1;
@@ -286,15 +292,16 @@ vector<double> dotProd(int matrix[][2], vector<double> weights, int size) {
 vector<double> dotProdTwo(int matrix[2][800], vector<double> error) {
 	
 	vector<double> answer(2);
-	
+	double sum = 0;
+	double sum2 = 0;
 	// For each index of the answer vector
-	for (int i = 0; i < 2; i++) {
-		for( int j = 0; j < 800; j++){
-			answer.insert(answer.begin() + i, answer.at(i) + ( double(matrix[i][j]) * error.at(i) + double(matrix[i][j]) * error.at(i+1) ));
-		}
-		
-	}
+	for( int j = 0; j < 800; j++){
 
+		sum += matrix[0][j] * error.at(j);
+		sum2 += matrix[1][j] * error.at(j);
+	}
+		answer.insert(answer.begin(), sum);
+		answer.insert(answer.begin() + 1, sum2);
 	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
 	return answer;
 }
@@ -317,7 +324,7 @@ double calcSpecificity(int TN, int FN) {
 // Calculates the predictions based on probabilities vector
 vector<int> doPredicts(vector<double> probSex , int size){
 	vector<int> predictions(size);
-
+	
 	for(int i = 0; i < size; i++){
 		if(probSex.at(i) > .5){
 			predictions.insert(predictions.begin() + i, 1);
