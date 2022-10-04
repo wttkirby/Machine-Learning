@@ -12,3 +12,7 @@ This is the [code](https://github.com/isabelleKirby/Machine-Learning/blob/main/A
 # Portfolio Component 2: Linear Models
 
 This is the pdf created for [Regression](https://github.com/isabelleKirby/Machine-Learning/blob/main/Linear%20Models/Regression.pdf) and [Classification](https://github.com/isabelleKirby/Machine-Learning/blob/main/Linear%20Models/Classification.pdf). In this homework we used Linear and Logistic Regression to process datasets found online.
+
+# Portfolio Component 3: Machine Learning from Scratch
+
+This is a pdf for the [paper]() we wrote as a part of this assignment. We also have .cpp files for [Logistic](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20Algorithms%20from%20Scratch/LinearRegression.cpp) Regression and the [Naive](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20Algorithms%20from%20Scratch/NaiveBayes.cpp) Bayes Model.
