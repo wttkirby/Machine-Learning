@@ -16,11 +16,11 @@ using namespace std;
 int getNumLines(string);						// Counts and returns the number of lines in a given file stream
 vector<double> dotProd(int[][2], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
 vector<double> dotProdTwo(int[2][800], vector<double>);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
-double calcAccuracy(int, int, int, int);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
-double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
-double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
+double calcAccuracy(double[2][2]);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
+double calcSensitivity(double[2][2]);				// Calculates and returns the sensitivity from the given TP and FN
+double calcSpecificity(double[2][2]);				// Calculates and returns the specificity from the given TN and FN
 vector<int> doPredicts(vector<double>, int);
-void printEverything(int[2][2], double, double, double, auto);
+void printEverything(double[2][2], double, double, double, auto);
 
 
 int main()
@@ -157,22 +157,21 @@ int main()
 
 	auto startClock = chrono::high_resolution_clock::now();
 	// Iterate 300 times, CAN BE INCREASE BUT WILL TAKE FOREVER TO EXECUTE!
-	for (int i = 0; i < 30; i++) {
-		//cout << "i: " << i << endl;.
+	for (int i = 0; i < 300; i++) {
 
 
 		// Create probability vector and set it's values
-		for (int i = 0; i < trainSize-1; i++) {
-			probability.insert(probability.begin() + i, (1 / ( 1 + exp(dotProduct.at(i)))));
-			error.insert(error.begin() + i, survivedTrain.at(i) - probability.at(i));
+		for (int j = 0; j < trainSize-1; j++) {
+			probability.insert(probability.begin() + j, (1 / ( 1 + exp(-1*dotProduct.at(j)))));
+			error.insert(error.begin() + j, survivedTrain.at(j) - probability.at(j));
 		}
 
 		// Get the dotProduct of the tranposed matrix and the error matrix
 		tranDotProduct = dotProdTwo(tranTrainSexMatrix, error);
 
 		// Scale the tranDotProduct vector by our learningRate
-		for(int i = 0; i < trainSize; i++) {
-			tranDotProduct.insert(tranDotProduct.begin() + i, tranDotProduct.at(i) * learningRate);
+		for(int j = 0; j < 2; j++) {
+			tranDotProduct.insert(tranDotProduct.begin() + j, tranDotProduct.at(j) * learningRate);
 		}
 
 		// Adjusting weight + learningRate + tranDotProduct
@@ -193,6 +192,7 @@ int main()
 
 		for( int i = 0; i < testSize; i++){
 			//cout << "i: " << i << endl;
+			//cout << "logOdds.at(i): " << logOdds.at(i) << endl;
 			//cout << "exp(logOdds.at(i)): " << exp(logOdds.at(i)) << endl;
 			//cout << "( 1 + exp(logOdds.at(i))): " << ( 1 + exp(logOdds.at(i))) << endl;
 			probVect.insert(probVect.begin() + i, (exp(logOdds.at(i)) / ( 1 + exp(logOdds.at(i)))));
@@ -200,7 +200,7 @@ int main()
 
 		sexTestPred = doPredicts(probVect, testSize);
 
-		int confusionMatrix[2][2];
+		double confusionMatrix[2][2];
 		confusionMatrix[0][0] = 0;
 		confusionMatrix[1][0] = 0;
 		confusionMatrix[0][1] = 0;
@@ -231,11 +231,11 @@ int main()
 		double specificityTest = 0;
 		auto duration = chrono::duration_cast<chrono::microseconds>(stopClock - startClock);
 
-		accuracyTest = calcAccuracy(confusionMatrix[0][0], confusionMatrix[0][1], confusionMatrix[1][0], confusionMatrix[1][1]);
-		sensitivityTest = calcSensitivity(confusionMatrix[0][0], confusionMatrix[1][0]);
-		specificityTest = calcSpecificity(confusionMatrix[1][1], confusionMatrix[0][1]);
+		accuracyTest = calcAccuracy(confusionMatrix);
+		sensitivityTest = calcSensitivity(confusionMatrix);
+		specificityTest = calcSpecificity(confusionMatrix);
 
-		printEverything( confusionMatrix, accuracyTest, sensitivityTest, specificityTest, duration);
+		printEverything(confusionMatrix, accuracyTest, sensitivityTest, specificityTest, duration);
 
 	}
 
@@ -307,18 +307,18 @@ vector<double> dotProdTwo(int matrix[2][800], vector<double> error) {
 }
 
 // Calculates and returns the accuracy from the given TP, TN, FP, and FN
-double calcAccuracy(int TP, int TN, int FP, int FN) {
-	return ( double(TP + TN) / double(TP + FP + TN + FN) );
+double calcAccuracy(double confusionMatrix[2][2]) {
+	return ( (confusionMatrix[0][0] + confusionMatrix[1][1]) / (confusionMatrix[0][0] + confusionMatrix[0][1] + confusionMatrix[1][0] + confusionMatrix[1][1]) );
 }		
 
 // Calculates and returns the sensitivity from the given TP and FN
-double calcSensitivity(int TP, int FN) {
-	return ( double(TP) / double(TP + FN) );
+double calcSensitivity(double confusionMatrix[2][2]) {
+	return ( (confusionMatrix[0][0]) / (confusionMatrix[0][0] + confusionMatrix[1][0]) );
 }				
 
-// Calculates and returns the specificity from the given TN and FN
-double calcSpecificity(int TN, int FN) {
-	return ( double(TN) / double(TN + FN) );
+// Calculates and returns the specificity from the given TN and FP
+double calcSpecificity(double confusionMatrix[2][2]) {
+	return ( (confusionMatrix[1][1]) / (confusionMatrix[1][1] + confusionMatrix[0][1]) );
 }				
 
 // Calculates the predictions based on probabilities vector
@@ -339,7 +339,7 @@ vector<int> doPredicts(vector<double> probSex , int size){
 }
 
 // Prints the given metrics to the user
-void printEverything(int matrix[2][2], double acc, double sens, double spec, auto time){
+void printEverything(double matrix[2][2], double acc, double sens, double spec, auto time){
 	cout << "Confusion Matrix:" << endl << endl;
 
 	for(int i = 0; i < 2; i++){
