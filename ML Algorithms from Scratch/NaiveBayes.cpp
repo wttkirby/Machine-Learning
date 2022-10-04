@@ -17,8 +17,9 @@ void printSex(double sex[][2]);
 double ageMean(vector<double>);
 double ageVar(vector<double>, double);
 void printPclass(double[][2]);
-double calcSensitivity(int, int);				// Calculates and returns the sensitivity from the given TP and FN
-double calcSpecificity(int, int);				// Calculates and returns the specificity from the given TN and FN
+double calcAccuracy(double[2][2]);				// Calculates and returns the sensitivity from the given the confusion matrix
+double calcSensitivity(double[2][2]);				// Calculates and returns the sensitivity from the given the confusion matrix
+double calcSpecificity(double[2][2]);				// Calculates and returns the specificity from the given the confusion matrix
 vector<double>  calcProb(int pclass, int sex, double age,double rawAge[][2], double rawClass[][2], double rawSex[][2], double probDied);
 double ageLH( double, double, double);
 
@@ -252,7 +253,7 @@ int main()
 		cout << "Test:" << endl << "Survived:      Died:" << endl;
 
 		int sumCorrect = 0;
-		int confusionMatrix[2][2];
+		double confusionMatrix[2][2];
 		confusionMatrix[0][0] = 0;
 		confusionMatrix[1][0] = 0;
 		confusionMatrix[0][1] = 0;
@@ -300,11 +301,11 @@ int main()
 		}
 
 		//cout << "Sumcorrect: " << sumCorrect << endl;
-		cout << "Accuracy: " << (double(sumCorrect) / double(247)) << endl;
+		cout << "Accuracy: " << calcAccuracy(confusionMatrix) << endl;
 
-		cout << "Sensitivity: " << calcSensitivity(confusionMatrix[0][0], confusionMatrix[1][0]) << endl;
+		cout << "Sensitivity: " << calcSensitivity(confusionMatrix) << endl;
 
-		cout << "Specificity: " << calcSpecificity(confusionMatrix[1][1], confusionMatrix[0][1]) << endl;
+		cout << "Specificity: " << calcSpecificity(confusionMatrix) << endl;
 
 
 	}
@@ -434,12 +435,17 @@ int getNumLines(string filename)
 }
 		
 
-// Calculates and returns the sensitivity from the given TP and FN
-double calcSensitivity(int TP, int FN) {
-	return ( double(TP) / double(TP + FN) );
+// Calculates and returns the accuracy from the given confusion matrix
+double calcAccuracy(double confusionMatrix[2][2]) {
+	return ( (confusionMatrix[0][0] + confusionMatrix[1][1]) / (confusionMatrix[0][0] + confusionMatrix[0][1] + confusionMatrix[1][0] + confusionMatrix[1][1]) );
+}		
+
+// Calculates and returns the sensitivity from the given confusion matrix
+double calcSensitivity(double confusionMatrix[2][2]) {
+	return ( (confusionMatrix[0][0]) / (confusionMatrix[0][0] + confusionMatrix[1][0]) );
 }				
 
-// Calculates and returns the specificity from the given TN and FP
-double calcSpecificity(int TN, int FP) {
-	return ( double(TN) / double(TN + FP) );
-}		
+// Calculates and returns the specificity from the given confusion matrix
+double calcSpecificity(double confusionMatrix[2][2]) {
+	return ( (confusionMatrix[1][1]) / (confusionMatrix[1][1] + confusionMatrix[0][1]) );
+}	

@@ -13,12 +13,12 @@
 using namespace std;
 
 
-int getNumLines(string);						// Counts and returns the number of lines in a given file stream
+int getNumLines(string);									// Counts and returns the number of lines in a given file stream
 vector<double> dotProd(int[][2], vector<double>, int);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
 vector<double> dotProdTwo(int[2][800], vector<double>);		// Computes the dot product of a vector matrix with a weight vector and returns the product.
-double calcAccuracy(double[2][2]);		// Calculates and returns the accuracy from the given TP, TN, FP, and FN
-double calcSensitivity(double[2][2]);				// Calculates and returns the sensitivity from the given TP and FN
-double calcSpecificity(double[2][2]);				// Calculates and returns the specificity from the given TN and FN
+double calcAccuracy(double[2][2]);							// Calculates and returns the accuracy from the given confusion matrix
+double calcSensitivity(double[2][2]);						// Calculates and returns the sensitivity from the given confusion matrix
+double calcSpecificity(double[2][2]);						// Calculates and returns the specificity from the given confusion matrix
 vector<int> doPredicts(vector<double>, int);
 void printEverything(double[2][2], double, double, double, auto);
 
@@ -85,19 +85,19 @@ int main()
 			if (numEntry < fileSize-1) {
 				// If the data entry is in the first 80% of the data set, add it to train vectors
 				if (numEntry < trainSize) {
-					personIDTrain.insert(personIDTrain.begin() + numEntry, stod(person_in));		// Add the person's ID entry to the person ID train vector
-					pclassTrain.insert(pclassTrain.begin() + numEntry, stod(pclass_in));			// Add the person's class entry to the person class train vector
-					survivedTrain.insert(survivedTrain.begin() + numEntry, stod(survived_in));		// Add the survived entry to the survived train vector
-					sexTrain.insert(sexTrain.begin() + numEntry, stod(sex_in));				// Add the person's sex entry to the sex train vector
-					ageTrain.insert(ageTrain.begin() + numEntry, stod(age_in));				// Add the person's age entry to the age train vector
-					numOneTrain.insert(numOneTrain.begin() + 1, 1);						// Add the 1 for the number one vector
+					personIDTrain.at(numEntry) = stod(person_in);		// Add the person's ID entry to the person ID train vector
+					pclassTrain.at(numEntry) = stod(pclass_in);			// Add the person's class entry to the person class train vector
+					survivedTrain.at(numEntry) = stod(survived_in);		// Add the survived entry to the survived train vector
+					sexTrain.at(numEntry) = stod(sex_in);				// Add the person's sex entry to the sex train vector
+					ageTrain.at(numEntry) = stod(age_in);				// Add the person's age entry to the age train vector
+					numOneTrain.at(numEntry) = 1;						// Add the 1 for the number one vector
 				}
 				else {	// Otherwise it is in the last 20% of the data set, add it to the test vectors
-					personIDTest.insert(personIDTest.begin() + numEntry2, stod(person_in));		// Add the person's ID entry to the person ID test vector
-					pclassTest.insert(pclassTest.begin() + numEntry2, stod(pclass_in));		// Add the person's class entry to the person class test vector
-					survivedTest.insert(survivedTest.begin() + numEntry2, stod(survived_in));	// Add the survived entry to the survived test vector
-					sexTest.insert(sexTest.begin() + numEntry2, stod(sex_in));				// Add the person's sex entry to the sex test vector
-					ageTest.insert(ageTest.begin() + numEntry2, stod(age_in));				// Add the person's age entry to the age test vector
+					personIDTest.at(numEntry2) = stod(person_in);		// Add the person's ID entry to the person ID test vector
+					pclassTest.at(numEntry2) = stod(pclass_in);		// Add the person's class entry to the person class test vector
+					survivedTest.at(numEntry2) = stod(survived_in);	// Add the survived entry to the survived test vector
+					sexTest.at(numEntry2) = stod(sex_in);				// Add the person's sex entry to the sex test vector
+					ageTest.at(numEntry2) = stod(age_in);				// Add the person's age entry to the age test vector
 					numEntry2++;										// Increment the numEntry 2 (used for test vectors index)			
 				}
 
@@ -145,9 +145,6 @@ int main()
 	vector<double> error(trainSize);			// The errors vector
 	int tranTrainSexMatrix[2][trainSize];	// The tranposed matrix of the trainSexMatrix
 
-	// Get the dotProduct of the trainSetMatrix and weight vector
-	dotProduct = dotProd(trainSexMatrix, weights, trainSize);
-
 	// Get the tranposed matrix of the trainSexMatrix
 	for (int i = 0; i < trainSize; i++) {
 		for (int j = 0; j < 2; j++) {
@@ -156,27 +153,30 @@ int main()
 	}
 
 	auto startClock = chrono::high_resolution_clock::now();
-	// Iterate 300 times, CAN BE INCREASE BUT WILL TAKE FOREVER TO EXECUTE!
-	for (int i = 0; i < 300; i++) {
+	// Iterate 100000 times
+	for (int i = 0; i < 100000; i++) {
+		// Get the dotProduct of the trainSetMatrix and weight vector
+		dotProduct = dotProd(trainSexMatrix, weights, trainSize);
 
 
 		// Create probability vector and set it's values
 		for (int j = 0; j < trainSize-1; j++) {
-			probability.insert(probability.begin() + j, (1 / ( 1 + exp(-1*dotProduct.at(j)))));
-			error.insert(error.begin() + j, survivedTrain.at(j) - probability.at(j));
+			probability.at(j) = (1 / ( 1 + exp(-1*dotProduct.at(j))));
+			error.at(j) = survivedTrain.at(j) - probability.at(j);
+			//cout << "error: " << error.at(j) << endl;
 		}
-
+		
 		// Get the dotProduct of the tranposed matrix and the error matrix
 		tranDotProduct = dotProdTwo(tranTrainSexMatrix, error);
 
 		// Scale the tranDotProduct vector by our learningRate
 		for(int j = 0; j < 2; j++) {
-			tranDotProduct.insert(tranDotProduct.begin() + j, tranDotProduct.at(j) * learningRate);
+			tranDotProduct.at(j) = tranDotProduct.at(j) * learningRate;
 		}
 
 		// Adjusting weight + learningRate + tranDotProduct
-		weights.insert(weights.begin(), weights.at(0) + tranDotProduct.at(0));
-		weights.insert(weights.begin() + 1, weights.at(1) + tranDotProduct.at(1));
+		weights.at(0) =  weights.at(0) + tranDotProduct.at(0);
+		weights.at(1) =  weights.at(1) + tranDotProduct.at(1);
 
 	}
 
@@ -195,7 +195,7 @@ int main()
 			//cout << "logOdds.at(i): " << logOdds.at(i) << endl;
 			//cout << "exp(logOdds.at(i)): " << exp(logOdds.at(i)) << endl;
 			//cout << "( 1 + exp(logOdds.at(i))): " << ( 1 + exp(logOdds.at(i))) << endl;
-			probVect.insert(probVect.begin() + i, (exp(logOdds.at(i)) / ( 1 + exp(logOdds.at(i)))));
+			probVect.at(i) =  (exp(logOdds.at(i)) / ( 1 + exp(logOdds.at(i))));
 		}
 
 		sexTestPred = doPredicts(probVect, testSize);
@@ -282,7 +282,7 @@ vector<double> dotProd(int matrix[][2], vector<double> weights, int size) {
 	// For each index of the answer vector
 	for (int i = 0; i < size; i++) {
 		// Multiplies the value at matrix[0][i] with the weights vector at 0
-		answer.insert(answer.begin() + i, ( double(matrix[i][0]) * weights.at(0) + double(matrix[i][1]) * weights.at(1) ));
+		answer.at(i) = ( double(matrix[i][0]) * weights.at(0) + double(matrix[i][1]) * weights.at(1) );
 	}
 
 	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
@@ -300,23 +300,23 @@ vector<double> dotProdTwo(int matrix[2][800], vector<double> error) {
 		sum += matrix[0][j] * error.at(j);
 		sum2 += matrix[1][j] * error.at(j);
 	}
-		answer.insert(answer.begin(), sum);
-		answer.insert(answer.begin() + 1, sum2);
+		answer.at(0) = sum;
+		answer.at(1) = sum2;
 	// Returns a vector or a nx1 matrix holding the ending matrix we need for calculations
 	return answer;
 }
 
-// Calculates and returns the accuracy from the given TP, TN, FP, and FN
+// Calculates and returns the accuracy from the given confusion matrix
 double calcAccuracy(double confusionMatrix[2][2]) {
 	return ( (confusionMatrix[0][0] + confusionMatrix[1][1]) / (confusionMatrix[0][0] + confusionMatrix[0][1] + confusionMatrix[1][0] + confusionMatrix[1][1]) );
 }		
 
-// Calculates and returns the sensitivity from the given TP and FN
+// Calculates and returns the sensitivity from the given confusion matrix
 double calcSensitivity(double confusionMatrix[2][2]) {
 	return ( (confusionMatrix[0][0]) / (confusionMatrix[0][0] + confusionMatrix[1][0]) );
 }				
 
-// Calculates and returns the specificity from the given TN and FP
+// Calculates and returns the specificity from the given confusion matrix
 double calcSpecificity(double confusionMatrix[2][2]) {
 	return ( (confusionMatrix[1][1]) / (confusionMatrix[1][1] + confusionMatrix[0][1]) );
 }				
@@ -327,10 +327,10 @@ vector<int> doPredicts(vector<double> probSex , int size){
 	
 	for(int i = 0; i < size; i++){
 		if(probSex.at(i) > .5){
-			predictions.insert(predictions.begin() + i, 1);
+			predictions.at(i) =  1;
 		}
 		else{
-			predictions.insert(predictions.begin() + i, 0);
+			predictions.at(i) = 0;
 		}
 
 	}
