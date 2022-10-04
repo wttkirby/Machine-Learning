@@ -15,4 +15,4 @@ This is the pdf created for [Regression](https://github.com/isabelleKirby/Machin
 
 # Portfolio Component 3: Machine Learning from Scratch
 
-This is a pdf for the [paper]() we wrote as a part of this assignment. We also have .cpp files for [Logistic](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20Algorithms%20from%20Scratch/LinearRegression.cpp) Regression and the [Naive](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20Algorithms%20from%20Scratch/NaiveBayes.cpp) Bayes Model.
+This is a pdf for the [paper](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20Algorithms%20from%20Scratch/Machine%20Learning%20with%20C%2B%2B.pdf) we wrote as a part of this assignment. We also have .cpp files for [Logistic](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20Algorithms%20from%20Scratch/LogisticRegression.cpp) Regression and the [Naive](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20Algorithms%20from%20Scratch/NaiveBayes.cpp) Bayes Model.
