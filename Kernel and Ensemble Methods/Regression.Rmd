@@ -1,0 +1,237 @@
+---
+title: "Kernel and Ensemble Methods: Classification"
+author: "Isabelle Kirby, Bridgette Bryant"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Regression for Korea's top high elo teams in League of Legends
+
+<description here> 
+
+
+## Cleaning Data
+
+First we have to unzip the archive (they are large data sets nearly 100k games). Then we will save the
+
+
+```{r}
+library(tidyverse)
+
+win_stats_df <- read.csv((unz("League_Data/league_korea_high_elo_team_stats.zip", "win_team_stats.csv")))
+lose_stats_df <- read.csv((unz("League_Data/league_korea_high_elo_team_stats.zip", "lose_team_stats.csv")))
+
+str(win_stats_df)
+str(lose_stats_df)
+
+```
+
+Now we will merge the two data sets together based on their matching gameId column. This way our model can catagorize our data by team 0 or team 1 winning based on both teams contrasting stats.
+```{r}
+# Replacing column names for rbind
+colnames(win_stats_df) <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5', 'gameId')
+colnames(lose_stats_df) <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5', 'gameId')
+
+# Adding column based on dataset it is in
+library(dplyr)
+
+win_stats_df <- win_stats_df %>%
+  mutate(won=1)
+
+lose_stats_df <- lose_stats_df %>%
+  mutate(won =0)
+
+#full_stats_df <- merge(win_stats_df, lose_stats_df, by = "gameId")
+full_stats_df <- rbind(win_stats_df, lose_stats_df)
+drop <- c("gameId")
+full_stats_df <- full_stats_df[,!(names(full_stats_df) %in% drop)]
+str(full_stats_df)
+```
+```{r}
+i <- sample(1:nrow(full_stats_df), .1*nrow(full_stats_df), replace=FALSE)
+full_stats_smol <- full_stats_df[i,]
+
+lolDataless <- full_stats_smol %>% rowwise() %>% mutate(TotalKill = sum(c_across(kill1:kill5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalDeath = sum(c_across(death1:death5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalDamage = sum(c_across(totalDamageDealtToChampions1:totalDamageDealtToChampions5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalGold = sum(c_across(goldEarned1:goldEarned5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalVision = sum(c_across(visionScore1:visionScore5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalCrowdControl = sum(c_across(totalTimeCrowdControlDealt1:totalTimeCrowdControlDealt5)))
+
+drop <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5')
+
+lolDataless = lolDataless[, !(names(lolDataless) %in% drop)]
+summary(lolDataless)
+```
+
+Next let's randomly divide the data into train, test, and validate:
+
+```{r}
+set.seed(1010)
+#j <- sample(1:nrow(full_stats_smol), 0.75*nrow(full_stats_smol), replace=FALSE)
+#full_stats_df <- full_stats_df[j,]
+spec <-c(train=.6, test=.2, validate=.2)
+i <- sample(cut(1:nrow(lolDataless), nrow(lolDataless)*cumsum(c(0,spec)), labels=names(spec)))
+full_stats_train <- lolDataless[i=="train",]
+full_stats_test <- lolDataless[i=="test",]
+full_stats_validate <- lolDataless[i=="validate",]
+summary(full_stats_train)
+```
+
+
+## Data Exploration
+
+Next we will plot some of our data to see possible differences/correlations. Time to do some data exploration.
+
+```{r}
+boxplot(full_stats_train$won, full_stats_train$TotalDeath, main="Won and Deaths", xlab="Won", ylab="Total Deaths", outline = FALSE, col = 'aquamarine')
+
+boxplot(full_stats_train$won, full_stats_train$TotalKill, main="Won and kills", xlab="Won", ylab="Total kills", outline = FALSE, col = 'azure')
+
+boxplot(full_stats_train$won, full_stats_train$TotalGold, main="Won and Gold Earned", xlab="Won", ylab="Total Gold Earned", outline = FALSE, col = 'beige')
+
+boxplot(full_stats_train$won, full_stats_train$TotalVision, main="Won and Vision Score", xlab="Won", ylab="Total Vision Score", outline = FALSE, col = 'bisque')
+
+boxplot(full_stats_train$won, full_stats_train$TotalCrowdControl, main="Won and totalTimeCrowdControlDealt", xlab="Won", ylab="Total totalTimeCrowdControlDealt", outline = FALSE, col='red')
+
+plot(full_stats_train$TotalKill, full_stats_train$TotalGold, main="Kills and Gold Earned", xlab="Kills", ylab="Total Gold Earned", col = rep(1:6))
+
+plot(full_stats_train$TotalDeath, full_stats_train$TotalDeath, main="Deaths and Gold Earned", xlab="Deaths", ylab="Total Gold Earned", col = rep(6:12))
+
+plot(full_stats_train$TotalVision, full_stats_train$TotalGold, main="Vision Score and Gold Earned", xlab="Vision Score", ylab="Total Gold Earned", col = rep(12:18))
+
+plot(full_stats_train$TotalCrowdControl, full_stats_train$TotalGold, main="totalTimeCrowdControlDealt and Gold Earned", xlab="totalTimeCrowdControlDealt", ylab="Total Gold Earned", col = rep(18:24))
+
+mean(full_stats_train$TotalKill)
+mean(full_stats_test$TotalKill)
+mean(full_stats_validate$TotalKill)
+
+```
+
+## SVM Regression
+
+### Linear Regression
+Trying linear regression with the data set
+```{r}
+linreg <- lm(won~., data=full_stats_train)
+predLin <- predict(linreg, newdata=full_stats_test)
+cor_lin <- cor(predLin, full_stats_test$won)
+mseLin <- mean((predLin-full_stats_test$won)^2)
+summary(linreg)
+```
+
+
+#### Training
+
+Now we will build our SVM Linear model
+```{r}
+library(e1071)
+svm_won <- svm(won~., data=full_stats_train, kernel="linear", cost=10, scale=TRUE)
+summary(svm_won)
+```
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+library(caret)
+svm_probs <- predict(svm_won, newdata = full_stats_test)
+svm_pred <- ifelse(svm_probs > 0.5, 1, 0)
+svm_acc <- mean(svm_pred == full_stats_test$won)
+
+confusionMatrix(as.factor(svm_pred), reference = as.factor(full_stats_test$won))
+```
+
+#### Tuning
+
+```{r}
+predLinSvm <- predict(svm_won, newdata=full_stats_test)
+corLinSvm <- cor(predLinSvm, full_stats_test$won)
+mseLinSvm <- mean((predLinSvm - full_stats_test$won)^2)
+
+tuneLin <- tune(svm, won~., data=full_stats_validate, kernel="linear", ranges=list(cost=c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+summary(tuneLin)
+```
+
+#### Polynomial Kernel
+
+```{r}
+svm_poly <- svm(won~., data=full_stats_train, kernel="polynomial", cost=10, scale=TRUE)
+summary(svm_poly)
+```
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+predPolySvm <- predict(svm_poly, newdata=full_stats_test)
+corPolySvm <- cor(predPolySvm, full_stats_test$won)
+svm_poly <- ifelse(predPolySvm > 0.5, 1, 0)
+msePolySvm <- mean((predPolySvm - full_stats_test$won)^2)
+
+confusionMatrix(as.factor(svm_poly), reference = as.factor(full_stats_test$won))
+```
+
+#### Radial Kernel
+
+```{r}
+svm_rad <- svm(won~., data=full_stats_train, kernel="radial", cost=10, scale=TRUE)
+summary(svm_rad)
+
+```
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+predRadSvm <- predict(svm_rad, newdata=full_stats_test)
+corRadSvm <- cor(predRadSvm, full_stats_test$won)
+mseRadSvm <- mean((predRadSvm - full_stats_test$won)^2)
+svm_rad <- ifelse(predRadSvm > 0.5, 1, 0)
+
+confusionMatrix(as.factor(svm_poly), reference = as.factor(full_stats_test$won))
+```
+
+#### Tune Hyperparameters
+
+```{r}
+set.seed(1234)
+
+tuneRad <- tune(svm, won~., data=full_stats_validate, kernel="radial", ranges=list(cost=c(0.1,1,10,100,1000), gamma=c(0.5,1,2,3,4)))
+summary(tuneRad)
+
+svm_radTune <- svm(won~., data=full_stats_validate, kernel="radial", cost=100, gamma=0.5, scale=TRUE)
+summary(svm_radTune)
+predRadSvm1 <- predict(svm_radTune, newdata=full_stats_test)
+corRadSvm1 <- cor(predRadSvm1, full_stats_test$won)
+mseRadSvm1 <- mean((predRadSvm1 - full_stats_test$won)^2)
+```
+
+
+
+
+## SVM Linear vs Polynomial vs Radial Kernels
+Analyzing the results of each model based on the algorithms.
+
+### SVM Linear
+
+For this we are trying to predict whether or not a team has won a match using the stats they had at the end of a game. Linear SVM works by plotting the data in a high-dimensional feature space so that the points can be categorized. The data is then transformed in ways that allows a separator to be drawn as a hyper plane. Linear kernels are better for when the data can be linearly separated easily.
+
+For this data set there was little difference between the accuracies in the different kernel types, which may mean this data was easy to split regardless of the kernel type. The linear kernel did perform marginally better than the others.
+
+### SVM Polynomial
+
+Polynomial kernels behave similarly to the linear kernels. However, they put all the data in a feature space over polynomials of the original variables, meaning that they work better for data that isn't easily separated linearly.
+
+This performed slightly worse than linear kernel, meaning this dataset was easily split using a linear hyperplane. However, it was still very accurate.
+### SVM Radial Kernels
+
+Radial kernels are similar to polynomial kernels as they both work with data that cannot be linearly separated easily. This generates a non-linear decision boundary.
+
+This performed slightly worse than linear kernel, meaning this dataset was easily split using a linear hyperplane. However, it was still very accurate.

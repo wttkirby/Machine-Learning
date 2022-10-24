@@ -1,0 +1,325 @@
+---
+title: "Kernel and Ensemble Methods: Classification"
+author: "Isabelle Kirby, Bridgette Bryant"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# SVM Classification for Korea's top high elo teams in League of Legends
+
+I utilized SVM linear, polynomial, and radial kernels to classify the League of Legends team won or lost based on the total team stats for kills, deaths, gold, and vision scores. Our dataset has all these values in two datasets lose_team_stats.csv and win_team_stats.csv. Each game also has a gameId which is unique to that specific game. This ID is identical in each dataset. The win_team_stats.csv file contains the winning teams kills, deaths, gold earned, damage dealt, crowd control, and vision scores for each player. The lose_team_stats is the same but for the losing teams. These datasets are great because they contain nearly 100k games and have no NA/Null values.
+
+
+## Cleaning Data
+
+First we have to unzip the archive (they are large data sets nearly 100k games). Then we will save the
+
+
+```{r}
+
+win_stats_df <- read.csv((unz("League_Data/league_korea_high_elo_team_stats.zip", "win_team_stats.csv")))
+lose_stats_df <- read.csv((unz("League_Data/league_korea_high_elo_team_stats.zip", "lose_team_stats.csv")))
+
+str(win_stats_df)
+str(lose_stats_df)
+
+```
+
+Now we will merge the two data sets together based on their matching gameId column. This way our model can catagorize our data by team 0 or team 1 winning based on both teams contrasting stats.
+```{r}
+# Replacing column names for rbind
+colnames(win_stats_df) <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5', 'gameId')
+colnames(lose_stats_df) <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5', 'gameId')
+
+# Adding column based on dataset it is in
+library(dplyr)
+
+win_stats_df <- win_stats_df %>%
+  mutate(won="True")
+
+lose_stats_df <- lose_stats_df %>%
+  mutate(won ="False")
+
+#full_stats_df <- merge(win_stats_df, lose_stats_df, by = "gameId")
+full_stats_df <- rbind(win_stats_df, lose_stats_df)
+drop <- c("gameId")
+full_stats_df <- full_stats_df[,!(names(full_stats_df) %in% drop)]
+
+# Make our won column a factor for classification
+full_stats_df$won <- as.factor(full_stats_df$won)
+
+str(full_stats_df)
+```
+```{r}
+i <- sample(1:nrow(full_stats_df), .1*nrow(full_stats_df), replace=FALSE)
+full_stats_smol <- full_stats_df[i,]
+
+lolDataless <- full_stats_smol %>% rowwise() %>% mutate(TotalKill = sum(c_across(kill1:kill5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalDeath = sum(c_across(death1:death5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalDamage = sum(c_across(totalDamageDealtToChampions1:totalDamageDealtToChampions5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalGold = sum(c_across(goldEarned1:goldEarned5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalVision = sum(c_across(visionScore1:visionScore5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalCrowdControl = sum(c_across(totalTimeCrowdControlDealt1:totalTimeCrowdControlDealt5)))
+
+drop <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5')
+
+lolDataless = lolDataless[, !(names(lolDataless) %in% drop)]
+summary(lolDataless)
+```
+
+Next let's randomly divide the data into train, test, and validate:
+
+```{r}
+set.seed(1010)
+spec <-c(train=.6, test=.2, validate=.2)
+i <- sample(cut(1:nrow(lolDataless), nrow(lolDataless)*cumsum(c(0,spec)), labels=names(spec)))
+full_stats_train <- lolDataless[i=="train",]
+full_stats_test <- lolDataless[i=="test",]
+full_stats_validate <- lolDataless[i=="validate",]
+
+summary(full_stats_train)
+```
+
+## Data Exploration
+
+Next we will plot some of our data to see possible differences/correlations. Time to do some data exploration.
+
+```{r}
+boxplot(full_stats_train$won, full_stats_train$TotalDeath, main="Won and Deaths", xlab="Won", ylab="Total Deaths", outline = FALSE, col = 'aquamarine')
+
+boxplot(full_stats_train$won, full_stats_train$TotalKill, main="Won and kills", xlab="Won", ylab="Total kills", outline = FALSE, col = 'azure')
+
+boxplot(full_stats_train$won, full_stats_train$TotalGold, main="Won and Gold Earned", xlab="Won", ylab="Total Gold Earned", outline = FALSE, col = 'beige')
+
+boxplot(full_stats_train$won, full_stats_train$TotalVision, main="Won and Vision Score", xlab="Won", ylab="Total Vision Score", outline = FALSE, col = 'bisque')
+
+boxplot(full_stats_train$won, full_stats_train$TotalCrowdControl, main="Won and totalTimeCrowdControlDealt", xlab="Won", ylab="Total totalTimeCrowdControlDealt", outline = FALSE, col='red')
+
+plot(full_stats_train$TotalKill, full_stats_train$TotalGold, main="Kills and Gold Earned", xlab="Kills", ylab="Total Gold Earned", col = rep(1:6))
+
+plot(full_stats_train$TotalDeath, full_stats_train$TotalDeath, main="Deaths and Gold Earned", xlab="Deaths", ylab="Total Gold Earned", col = rep(6:12))
+
+plot(full_stats_train$TotalVision, full_stats_train$TotalGold, main="Vision Score and Gold Earned", xlab="Vision Score", ylab="Total Gold Earned", col = rep(12:18))
+
+plot(full_stats_train$TotalCrowdControl, full_stats_train$TotalGold, main="totalTimeCrowdControlDealt and Gold Earned", xlab="totalTimeCrowdControlDealt", ylab="Total Gold Earned", col = rep(18:24))
+
+```
+### Performing Logistic Regression
+```{r}
+library(caret)
+glm_won <- glm(won~., data=full_stats_train, family = "binomial")
+summary(glm_won)
+
+glm_probs <- predict(glm_won, newdata = full_stats_test)
+str(glm_probs)
+glm_pred <- ifelse(glm_probs > 0.5, "True", "False")
+glm_acc <- mean(glm_pred == full_stats_test$won)
+
+confusionMatrix(as.factor(glm_pred), reference = full_stats_test$won)
+```
+
+
+## SVM Classification
+
+### Linear
+
+#### Training
+
+Now we will build our SVM Linear model
+```{r}
+library(e1071)
+svm_lin <- svm(won~., data=full_stats_train, kernel="linear", cost=10, scale=TRUE)
+summary(svm_lin)
+```
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+library(caret)
+svm_probs_lin <- predict(svm_lin, newdata = full_stats_test)
+
+confusionMatrix(svm_probs_lin, reference = full_stats_test$won)
+plot(svm_lin, full_stats_test, TotalGold ~ TotalVision)
+plot(svm_lin, full_stats_test, TotalGold ~ TotalDeath)
+plot(svm_lin, full_stats_test, TotalKill ~ TotalDeath)
+plot(svm_lin, full_stats_test, TotalKill ~ TotalVision)
+plot(svm_lin, full_stats_test, TotalKill ~ TotalCrowdControl)
+plot(svm_lin, full_stats_test, TotalKill ~ TotalDamage)
+```
+#### Tuning
+
+```{r}
+set.seed(1010)
+tune_out <- tune(svm, won~., data=full_stats_validate, kernel="linear",
+                 ranges=list(cost=c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+summary(tune_out)
+```
+
+#### Getting Best Model after Tune
+
+```{r}
+best_lin_model <- tune_out$best.model
+summary(best_lin_model)
+best_lin_pred <- predict(best_lin_model, newdata=full_stats_test)
+acc_best_lin <- mean(best_lin_pred==full_stats_test$won)
+
+```
+
+#### Evaluating Best Model
+
+```{r}
+confusionMatrix(best_lin_pred, reference = full_stats_test$won)
+plot(best_lin_model, full_stats_test, TotalGold ~ TotalVision)
+plot(best_lin_model, full_stats_test, TotalGold ~ TotalDeath)
+plot(best_lin_model, full_stats_test, TotalKill ~ TotalDeath)
+plot(best_lin_model, full_stats_test, TotalKill ~ TotalVision)
+plot(best_lin_model, full_stats_test, TotalKill ~ TotalCrowdControl)
+plot(best_lin_model, full_stats_test, TotalKill ~ TotalDamage)
+```
+
+
+### Polynomial
+
+#### Training
+
+Now we will build our SVM Polynomial model
+```{r}
+library(e1071)
+svm_poly <- svm(won~., data=full_stats_train, kernel="polynomial", cost=10, scale=TRUE)
+summary(svm_poly)
+```
+
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+library(caret)
+svm_probs_poly <- predict(svm_poly, newdata = full_stats_test)
+
+confusionMatrix(svm_probs_poly, reference = full_stats_test$won)
+plot(svm_poly, full_stats_test, TotalGold ~ TotalVision)
+plot(svm_poly, full_stats_test, TotalGold ~ TotalDeath)
+plot(svm_poly, full_stats_test, TotalKill ~ TotalDeath)
+plot(svm_poly, full_stats_test, TotalKill ~ TotalVision)
+plot(svm_poly, full_stats_test, TotalKill ~ TotalCrowdControl)
+plot(svm_poly, full_stats_test, TotalKill ~ TotalDamage)
+```
+#### Tuning
+
+```{r}
+set.seed(1010)
+tune_out <- tune(svm, won~., data=full_stats_validate, kernel="poly",
+                 ranges=list(cost=c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+summary(tune_out)
+```
+
+#### Getting Best Model after Tune
+
+```{r}
+best_poly_model <- tune_out$best.model
+summary(best_poly_model)
+best_poly_pred <- predict(best_poly_model, newdata=full_stats_test)
+acc_best_poly <- mean(best_poly_pred==full_stats_test$won)
+
+```
+
+#### Evaluating Best Model
+
+```{r}
+confusionMatrix(best_poly_pred, reference = full_stats_test$won)
+plot(best_poly_model, full_stats_test, TotalGold ~ TotalVision)
+plot(best_poly_model, full_stats_test, TotalGold ~ TotalDeath)
+plot(best_poly_model, full_stats_test, TotalKill ~ TotalDeath)
+plot(best_poly_model, full_stats_test, TotalKill ~ TotalVision)
+plot(best_poly_model, full_stats_test, TotalKill ~ TotalCrowdControl)
+plot(best_poly_model, full_stats_test, TotalKill ~ TotalDamage)
+```
+
+### Radial
+
+#### Training
+
+Now we will build our SVM Radial model
+```{r}
+library(e1071)
+svm_rad <- svm(won~., data=full_stats_train, kernel="radial", cost=10, scale=TRUE)
+summary(svm_rad)
+```
+
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+library(caret)
+svm_probs_rad <- predict(svm_rad, newdata = full_stats_test)
+
+confusionMatrix(svm_probs_rad, reference = full_stats_test$won)
+plot(svm_rad, full_stats_test, TotalGold ~ TotalVision)
+plot(svm_rad, full_stats_test, TotalGold ~ TotalDeath)
+plot(svm_rad, full_stats_test, TotalKill ~ TotalDeath)
+plot(svm_rad, full_stats_test, TotalKill ~ TotalVision)
+plot(svm_rad, full_stats_test, TotalKill ~ TotalCrowdControl)
+plot(svm_rad, full_stats_test, TotalKill ~ TotalDamage)
+```
+#### Tuning
+
+```{r}
+set.seed(1010)
+tune_out <- tune(svm, won~., data=full_stats_validate, kernel="radial",
+                 ranges=list(cost=c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+summary(tune_out)
+```
+
+#### Getting Best Model after Tune
+
+```{r}
+best_rad_model <- tune_out$best.model
+summary(best_rad_model)
+best_rad_pred <- predict(best_rad_model, newdata=full_stats_test)
+acc_best_rad <- mean(best_rad_pred==full_stats_test$won)
+
+```
+
+#### Evaluating Best Model
+
+```{r}
+confusionMatrix(best_rad_pred, reference = full_stats_test$won)
+plot(best_rad_model, full_stats_test, TotalGold ~ TotalVision)
+plot(best_rad_model, full_stats_test, TotalGold ~ TotalDeath)
+plot(best_rad_model, full_stats_test, TotalKill ~ TotalDeath)
+plot(best_rad_model, full_stats_test, TotalKill ~ TotalVision)
+plot(best_rad_model, full_stats_test, TotalKill ~ TotalCrowdControl)
+plot(best_rad_model, full_stats_test, TotalKill ~ TotalDamage)
+```
+
+## SVM Linear vs Polynomial vs Radial
+Analyzing the results of each model based on the algorithms.
+
+### SVM Linear
+
+Our SVM Linear model utilized 371 support vectors along the margin. It had an accuracy of 95.47%, the balanced accuracy is 95.48%. This is a fairly high accuracy, which isn't surprising to me because our data as seen in the graphs is very linear and could be split easily using a linear function. The sensitivity is about .96 and the specificity is about .95 which are both close to 1 and very good. The p-value is also very low which shows this a good model. The Kappas is about .91, which shows a excellent positive agreement. Overall, this model has very good metrics and is a very good model for our data. The linear model utilizes a linear decision boundary, which for most of our data as seen by the graphs is very effective. 
+
+
+### SVM Polynomial
+
+Our SVM Linear model utilized 824 support vectors along the margin. It had an accuracy of 95.22%, the balanced accuracy is 95.24%. This is a fairly high accuracy, which isn't surprising to me because our data as seen in the graphs is very linear and could be split easily using a polynomial function. The sensitivity is about .96 and the specificity is about .94 which are both close to 1 and very good. The p-value is also very low which shows this a good model. The Kappas is about .91, which shows a excellent positive agreement. Overall, this model has very good metrics and is a very good model for our data. The linear model utilizes a polynomial decision boundary, which for most of our data as seen by the graphs is very effective.
+
+
+### SVM Radial
+
+Our SVM Linear model utilized 522 support vectors along the margin. It had an accuracy of 95.58%, the balanced accuracy is 95.60%. This is a fairly high accuracy, which isn't surprising to me because our data as seen in the graphs is very linear and could be split easily using a polynomial function. The sensitivity is about .97 and the specificity is about .95 which are both close to 1 and very good. The p-value is also very low which shows this a good model. The Kappas is about .91, which shows a excellent positive agreement. Overall, this model has very good metrics and is a very good model for our data. The linear model utilizes a radial decision boundary, with an additional hyperparameter gamma to control the shape. After tuning, it was very effective for most of our data as seen by the graphs.
+
+
+### Summary
+
+The SVM polynomial model had the most support vectors but the lowest accuracy of all the models. The radial model had the highest accuracy, with linear not far behind, and the polynomial model being the least. However, the difference between them is less than .5%. The Kappa is pretty much the same for all of them, as well as the specificity and sensitivity. Overall it was surprising to me that the radial model was the most accurate. However, by looking at the graphs you can see how well of it fit it really is. Although the differences in accuracy are very small. Overall, I think all of these models represent and predict the data well. However, it is unfortunate that I couldn't use more of the data set because of the time complexity of SVM. Overall the SVM algorithms outperformed the initial logistic regression model created during data exploration, but it wasn't by a landslide as our model is very ideal for logistic regression.
+

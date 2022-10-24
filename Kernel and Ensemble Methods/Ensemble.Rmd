@@ -1,0 +1,317 @@
+---
+title: "Kernel and Ensemble Methods: Classification"
+author: "Isabelle Kirby, Bridgette Bryant"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Ensemble Packaging Methods for Korea's top high elo teams in League of Legends
+
+I utilized Random Forest, XGBoost, and SuperLearner to classify the League of Legends team won or lost based on the total team stats for kills, deaths, gold, and vision scores. Our dataset has all these values in two datasets lose_team_stats.csv and win_team_stats.csv. Each game also has a gameId which is unique to that specific game. This ID is identical in each dataset. The win_team_stats.csv file contains the winning teams kills, deaths, gold earned, damage dealt, crowd control, and vision scores for each player. The lose_team_stats is the same but for the losing teams. These datasets are great because they contain nearly 100k games and have no NA/Null values.
+
+
+## Cleaning Data
+
+First we have to unzip the archive (they are large data sets nearly 100k games). Then we will save the
+
+
+```{r}
+
+win_stats_df <- read.csv((unz("League_Data/league_korea_high_elo_team_stats.zip", "win_team_stats.csv")))
+lose_stats_df <- read.csv((unz("League_Data/league_korea_high_elo_team_stats.zip", "lose_team_stats.csv")))
+
+str(win_stats_df)
+str(lose_stats_df)
+
+```
+
+Now we will merge the two data sets together based on their matching gameId column. This way our model can catagorize our data by team 0 or team 1 winning based on both teams contrasting stats.
+```{r}
+# Replacing column names for rbind
+colnames(win_stats_df) <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5', 'gameId')
+colnames(lose_stats_df) <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5', 'gameId')
+
+# Adding column based on dataset it is in
+library(dplyr)
+
+win_stats_df <- win_stats_df %>%
+  mutate(won=1)
+
+lose_stats_df <- lose_stats_df %>%
+  mutate(won =0)
+
+#full_stats_df <- merge(win_stats_df, lose_stats_df, by = "gameId")
+full_stats_df <- rbind(win_stats_df, lose_stats_df)
+drop <- c("gameId")
+full_stats_df <- full_stats_df[,!(names(full_stats_df) %in% drop)]
+
+# Make our won column a factor for classification
+full_stats_df$won <- as.factor(full_stats_df$won)
+
+str(full_stats_df)
+```
+```{r}
+i <- sample(1:nrow(full_stats_df), .2*nrow(full_stats_df), replace=FALSE)
+full_stats_smol <- full_stats_df[i,]
+
+lolDataless <- full_stats_smol %>% rowwise() %>% mutate(TotalKill = sum(c_across(kill1:kill5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalDeath = sum(c_across(death1:death5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalDamage = sum(c_across(totalDamageDealtToChampions1:totalDamageDealtToChampions5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalGold = sum(c_across(goldEarned1:goldEarned5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalVision = sum(c_across(visionScore1:visionScore5)))
+
+lolDataless <- lolDataless %>% rowwise() %>% mutate(TotalCrowdControl = sum(c_across(totalTimeCrowdControlDealt1:totalTimeCrowdControlDealt5)))
+
+drop <- c('kill1', 'kill2', 'kill3', 'kill4', 'kill5', 'death1', 'death2', 'death3', 'death4', 'death5', 'totalDamageDealtToChampions1', 'totalDamageDealtToChampions2', 'totalDamageDealtToChampions3', 'totalDamageDealtToChampions4', 'totalDamageDealtToChampions5', 'goldEarned1', 'goldEarned2', 'goldEarned3', 'goldEarned4', 'goldEarned5', 'visionScore1', 'visionScore2', 'visionScore3', 'visionScore4', 'visionScore5', 'totalTimeCrowdControlDealt1', 'totalTimeCrowdControlDealt2', 'totalTimeCrowdControlDealt3', 'totalTimeCrowdControlDealt4', 'totalTimeCrowdControlDealt5')
+
+lolDataless = lolDataless[, !(names(lolDataless) %in% drop)]
+summary(lolDataless)
+```
+
+Next let's randomly divide the data into train, test, and validate:
+
+```{r}
+set.seed(1010)
+i <- sample(1:nrow(lolDataless), 0.75*nrow(lolDataless), replace=FALSE)
+full_stats_train <- lolDataless[i,]
+full_stats_test <- lolDataless[-i,]
+
+summary(full_stats_train)
+```
+
+
+## Data Exploration
+
+Next we will plot some of our data to see possible differences/correlations. Time to do some data exploration.
+
+```{r}
+boxplot(full_stats_train$won, full_stats_train$TotalDeath, main="Won and Deaths", xlab="Won", ylab="Total Deaths", outline = FALSE, col = 'aquamarine')
+
+boxplot(full_stats_train$won, full_stats_train$TotalKill, main="Won and kills", xlab="Won", ylab="Total kills", outline = FALSE, col = 'azure')
+
+boxplot(full_stats_train$won, full_stats_train$TotalGold, main="Won and Gold Earned", xlab="Won", ylab="Total Gold Earned", outline = FALSE, col = 'beige')
+
+boxplot(full_stats_train$won, full_stats_train$TotalVision, main="Won and Vision Score", xlab="Won", ylab="Total Vision Score", outline = FALSE, col = 'bisque')
+
+boxplot(full_stats_train$won, full_stats_train$TotalCrowdControl, main="Won and totalTimeCrowdControlDealt", xlab="Won", ylab="Total totalTimeCrowdControlDealt", outline = FALSE, col='red')
+
+plot(full_stats_train$TotalKill, full_stats_train$TotalGold, main="Kills and Gold Earned", xlab="Kills", ylab="Total Gold Earned", col = rep(1:6))
+
+plot(full_stats_train$TotalDeath, full_stats_train$TotalDeath, main="Deaths and Gold Earned", xlab="Deaths", ylab="Total Gold Earned", col = rep(6:12))
+
+plot(full_stats_train$TotalVision, full_stats_train$TotalGold, main="Vision Score and Gold Earned", xlab="Vision Score", ylab="Total Gold Earned", col = rep(12:18))
+
+plot(full_stats_train$TotalCrowdControl, full_stats_train$TotalGold, main="totalTimeCrowdControlDealt and Gold Earned", xlab="totalTimeCrowdControlDealt", ylab="Total Gold Earned", col = rep(18:24))
+
+```
+### Perfoming Decision Trees for Classification
+
+#### Create & Display the tree
+
+```{r}
+library(tree)
+stats_tree <- tree(won~., data = full_stats_df)
+stats_tree
+summary(stats_tree)
+plot(stats_tree)
+text(stats_tree, cex = .75, pretty = 0)
+```
+
+#### Train & Test
+
+```{r}
+set.seed(1010)
+i <- sample(181000, 45250, replace=FALSE)
+tree_train <- full_stats_df[i,]
+tree_test <- full_stats_df[-i,]
+stats_train_tree <- tree(as.factor(won)~., data = tree_train)
+print(stats_train_tree)
+tree_pred <- predict(stats_train_tree, newdata = tree_test, type = "class")
+```
+#### Evaluating Initial tree
+```{r}
+library(caret)
+confusionMatrix(as.factor(tree_pred), reference = as.factor(tree_test$won))
+```
+
+#### Cross Validating & Pruning
+```{r}
+cv_stats_tree <- cv.tree(stats_tree)
+plot(cv_stats_tree$size, cv_stats_tree$dev, type='b')
+tree_pruned <- prune.tree(stats_train_tree, best=5)
+summary(tree_pruned)
+plot(tree_pruned)
+text(tree_pruned, cex = .75, pretty = 0)
+```
+#### Testing and Evaluating our Pruned Tree
+```{r}
+tree_pred <- predict(stats_train_tree, newdata = tree_test, type = "class")
+confusionMatrix(as.factor(tree_pred), reference = as.factor(tree_test$won))
+```
+
+
+## Ensemble Packages
+
+### Random Forest
+
+#### Training
+
+Now we will build our random forest model
+```{r}
+library(randomForest)
+set.seed(1010)
+rand_for <- randomForest(won~., data=full_stats_train, importance=TRUE)
+rand_for
+```
+
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+library(caret)
+pred_rand_for <- predict(rand_for, newdata=full_stats_test)
+confusionMatrix(as.factor(pred_rand_for), reference = as.factor(full_stats_test$won))
+```
+
+### Bagging Random Forest
+
+#### Training
+
+Now we will build our bagged random forest model
+```{r}
+library(randomForest)
+set.seed(1010)
+rand_for_bag <- randomForest(won~., data=full_stats_train, mtry = 6)
+rand_for_bag
+```
+
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+library(caret)
+pred_rand_for_bag <- predict(rand_for_bag, newdata=full_stats_test)
+confusionMatrix(as.factor(pred_rand_for_bag), reference = as.factor(full_stats_test$won))
+```
+
+### XGBoost
+
+#### Training
+
+Now we will build our XGBoost Model
+```{r}
+library(xgboost)
+train_label <- ifelse(full_stats_train$won==1, 1, 0)
+train_matrix <- data.matrix((full_stats_train[, -1]))
+
+xgb_model <- xgboost(data=train_matrix, label=train_label, nthread = 4, nrounds=100, objective='binary:logistic')
+
+```
+
+#### Testing & Evaluation
+
+Now we can evaluate on the test set:
+
+```{r}
+test_label <- ifelse(full_stats_test$won==1, 1, 0)
+test_matrix <- data.matrix((full_stats_test[, -1]))
+
+xgb_probs <- predict(xgb_model, test_matrix)
+xgb_pred <- ifelse(xgb_probs>.5, 1, 0)
+confusionMatrix(as.factor(xgb_pred), as.factor(full_stats_test$won))
+```
+#### Cross Validation of XGBoost
+```{r}
+cv.res <- xgb.cv(data=train_matrix, label=train_label, nfold=5, nrounds=100, objective='binary:logistic')
+```
+
+#### Training with Combined Trees
+
+Now we will build our XGBoost Model
+```{r}
+library(xgboost)
+train_label <- ifelse(full_stats_train$won==1, 1, 0)
+train_matrix <- data.matrix((full_stats_train[, -1]))
+
+xgb_cmb_model <- xgboost(data=train_matrix, label=train_label, max.depth = 3, eta = 1, nthread = 4, nrounds=100, objective='binary:logistic', min_child_weight=50)
+
+```
+
+#### Testing & Evaluation of Combined Trees
+
+Now we can evaluate on the test set:
+
+```{r}
+test_label <- ifelse(full_stats_test$won==1, 1, 0)
+test_matrix <- data.matrix((full_stats_test[, -1]))
+
+xgb_cmb_probs <- predict(xgb_cmb_model, test_matrix)
+xgb_cmb_pred <- ifelse(xgb_cmb_probs>.5, 1, 0)
+confusionMatrix(as.factor(xgb_cmb_pred), as.factor(full_stats_test$won))
+```
+#### Cross Validation of XGBoost of Combined Trees
+```{r}
+cv.res <- xgb.cv(data=train_matrix, label=train_label, nfold=5, nrounds=100, objective='binary:logistic')
+```
+#### Plotting Combined XGBoost Tree
+```{r}
+xgb.plot.multi.trees(model = xgb_cmb_model, feature_names = colnames(train_matrix), features_keep = 6)
+```
+
+
+### SuperLearner
+
+#### Training
+Here we will create our SuperLearner model.
+```{r}
+library(SuperLearner)
+set.seed(1010)
+super_model <- SuperLearner(train_label, full_stats_train[,-1], family=binomial(), SL.library="SL.ranger")
+super_model
+```
+
+#### Testing & Evaluation
+Here we will predict with and evaluate the results our SuperLearner model
+```{r}
+probs_super_model <- predict(super_model, newdata=full_stats_test[,-1])
+pred_super_model <- ifelse(probs_super_model$pred > 0, 1, 0)
+confusionMatrix(as.factor(pred_super_model), as.factor(full_stats_test$won))
+```
+
+
+## Random Forest vs XGBoost vs SuperLearner
+Analyzing the results of each model based on the algorithms.
+
+### Random Forest
+
+#### Without Bagging
+The Random Forest model without bagging had an accuracy of 95.69%, with the same balanced accuracy.The Kappa value was .9138, with sensitivity of .9564 and specificity of .9574. The accuracy is fairly high and it didn't take too long to run. Kappa, sensitivity, and specificity are all also fairly close to 1. This shows overall this was a good model.
+
+#### With Bagging
+The Random Forest model with bagging had an accuracy of 95.69%, with a balanced accuracy of 95.55%.The Kappa value was .9111, with sensitivity of .9537 and specificity of .9574. The accuracy is fairly high and it didn't take too long to run. Kappa, sensitivity, and specificity are all also fairly close to 1. This shows overall this was a good model. However, it was slightly worse than the non-bagged model. I think this is because some of our variables could have been misleading for the data, causing it to create less accurate splits.
+
+
+### XGBoost
+
+#### Without Combined Trees
+The XGBoost model without combined trees had an accuracy of 95.57%, with the same balanced accuracy.The Kappa value was .9114, with sensitivity of .9555 and specificity of .9559. The accuracy is fairly high and it was very fast to run. Kappa, sensitivity, and specificity are all also fairly close to 1. This shows overall this was a good model. However, it was a hair worse than the non-bagged Random Forest model. I think this is because some of our variables could have been misleading for the data, causing it to create less accurate trees.
+
+#### With Combined Trees
+The XGBoost model without combined trees had an accuracy of 95.49%, with the same balanced accuracy.The Kappa value was .9098, with sensitivity of .9530 and specificity of .9552. The accuracy is fairly high and it was very fast to run. Kappa, sensitivity, and specificity are all also fairly close to 1. This shows overall this was a good model. However, it was a slightly worse than the non-combined XGBoost model. I think this is because I had to limit the model more with max depth, etc. in order to make the tree smaller to easily read when plotted.
+
+### SuperLearner
+
+For SuperLearner I used 3 models, the SuperLearner's Ranger. The SuperLearner's Ranger model had an accuracy of 66.21%, with the balanced accuracy of 65.87%. The kappa value and sensitivity values were not close to 1 (around .3). But the specificity was exactly 1. This model took a reasonable amount of time to run and was significantly less accurate than the other models. We didn't put a lot of time into making the best parameters for SuperLearner, which could boost the accuracy, but it would require a lot more work than the other models for similar results. We also found this model to be the least simple to implement as you are almost using SuperLearner as a middle man for each model/algorithm. 
+
+
+### Summary
+
+Overall Random Forest and XGBoost were very good models. The Random Forest without bagging was overall the best, but this was by very small margins. I was very impressed by both of XGBoost for how nice the plotting is and how quickly the model runs. When possible, I will likely opt to use XGBoost for it's speed and high accuracy. All of these models performed much better than the base decision tree models we made, both the pruned/unpruned trees were greatly outperformed in accuracy compared to these models. However, the SuperLearner models were quite poor, I also combined the SuperLearner version of RandomForest and XGBoost previously to test to see if they would perform as well, but it dropped the accuracy down to around 50% therefore I simply restricted it to just Ranger. But even with that the accuracy is lower than the initial decision tree and is overall a poor model of our data, especially compared with the faster and more accurate models. 
+
