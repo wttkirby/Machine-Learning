@@ -24,3 +24,7 @@ This is a pdf for the [regression](https://github.com/isabelleKirby/Machine-Lear
 # Portfolio Component 5: Kernel and Ensemble Methods
 
 This is the notebook for [classification](https://github.com/isabelleKirby/Machine-Learning/blob/main/Kernel%20and%20Ensemble%20Methods/Classification.Rmd), [regression](https://github.com/isabelleKirby/Machine-Learning/blob/main/Kernel%20and%20Ensemble%20Methods/Regression.Rmd), and [other](https://github.com/isabelleKirby/Machine-Learning/blob/main/Kernel%20and%20Ensemble%20Methods/Ensemble.Rmd) ensemble methods. There are also [pdfs](https://github.com/isabelleKirby/Machine-Learning/tree/main/Kernel%20and%20Ensemble%20Methods) and a [paper](https://github.com/isabelleKirby/Machine-Learning/blob/main/Kernel%20and%20Ensemble%20Methods/Kernel_and_Ensemble_Methods_NarrativeDoc.pdf).
+
+# Portfolio Component 6: Machine Learning with SKLearn
+
+This is the [pdf](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20with%20SKLearn/Portfolio_Assignment_ML_with_sklearn.pdf) generated for this assignment as well as the [code](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20with%20SKLearn/Portfolio_Assignment_ML_with_sklearn.ipynb).
