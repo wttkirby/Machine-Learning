@@ -28,3 +28,7 @@ This is the notebook for [classification](https://github.com/isabelleKirby/Machi
 # Portfolio Component 6: Machine Learning with SKLearn
 
 This is the [pdf](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20with%20SKLearn/Portfolio_Assignment_ML_with_sklearn.pdf) generated for this assignment as well as the [code](https://github.com/isabelleKirby/Machine-Learning/blob/main/ML%20with%20SKLearn/Portfolio_Assignment_ML_with_sklearn.ipynb).
+
+# Portfolio Component 7: Image Classification
+
+This is the [code](https://github.com/isabelleKirby/Machine-Learning/blob/main/Image%20Classification/pre-processed-snake-images-update.ipynb) and the [kaggle](https://www.kaggle.com/code/wybite/pre-processed-snake-images-update).
