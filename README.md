@@ -7,7 +7,7 @@ This is the [Overview of Machine Learning](https://github.com/wttkirby/Machine-L
 
 # Portfolio Component 1: Data Exploration
 
-This is the [code](https://github.com/wttkirby/Machine-Learning/blob/main/Assignment%201.cpp) and the [paper](https://github.com/wttkirby/Machine-Learning/blob/main/Assignment%201%20Paper.docx) for my data exploration.
+This is the [code](https://github.com/wttkirby/Machine-Learning/blob/main/Data%20Exploration/Assignment%201.cpp) and the [paper](https://github.com/wttkirby/Machine-Learning/blob/main/Assignment%201%20Paper.docx) for my data exploration.
 
 # Portfolio Component 2: Linear Models
 
@@ -31,4 +31,4 @@ This is the [pdf](https://github.com/wttkirby/Machine-Learning/blob/main/ML%20wi
 
 # Portfolio Component 7: Image Classification
 
-This is the [code](https://github.com/wttkirby/Machine-Learning/blob/main/Image%20Classification/pre-processed-snake-images-update.ipynb) and the [kaggle](https://www.kaggle.com/code/wybite/pre-processed-snake-images-update).
+This is the [code](https://github.com/wttkirby/Machine-Learning/blob/main/Image%20Classification/pre-processed-snake-images-update.ipynb).
